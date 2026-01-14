@@ -30,7 +30,7 @@ def run_cli_demo():
     print("초기화 완료!\n")
 
     # 2. 데이터셋 로드
-    samples_path = repo_root / "backend" / "data" / "samples.json"
+    samples_path = repo_root / "data" / "samples.json"
     if not samples_path.exists():
         print("에러: samples.json 파일을 찾을 수 없습니다. fetch_data.py를 먼저 실행해주세요.")
         return
