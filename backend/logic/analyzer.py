@@ -29,9 +29,7 @@ class LogicAnalyzer:
         }
 
     def analyze(self, text: str) -> List[Dict]:
-        """
-        텍스트를 문장 단위로 분리하고, 각 문장의 논리적 역할과 핵심 키워드를 추출합니다.
-        """
+        # 텍스트를 문장 단위로 분리하고, 각 문장의 논리적 역할과 핵심 키워드를 추출합니다.
         sentences = kss.split_sentences(text)
         analyzed_nodes = []
 
@@ -67,13 +65,35 @@ class LogicAnalyzer:
         words = sentence.split()
         return [w for w in words if len(w) > 1][:5]
 
-    def _check_if_key_node(self, roles: List[str], index: int, total: int) -> bool:
-        """
-        문장이 핵심 노드인지 판별 (주장, 결과 또는 문단의 처음/마지막 등)
-        """
-        priority_roles = ["claim", "result", "contrast"]
-        if any(role in priority_roles for role in roles):
-            return True
+    def _score_sentence(self, sentence: str, roles: List[str], index: int, total: int) -> float:
+        score = 0.0
+
+        # 1. role 기반 가중치
+        role_weight = {
+            "claim": 3.0,
+            "result": 3.0,
+            "cause": 2.0,
+            "evidence": 1.5,
+            "contrast": 1.0,
+            "general": 0.5
+        }
+        for r in roles:
+            score += role_weight.get(r, 0.5)
+
+        # 2. 정의 / 분류 패턴 가산 (서사·설명 텍스트 대응)
+        if re.search(r"(라 불리|란 |이다)", sentence):
+            score += 1.5
+
+        # 3. 고유명사/용어 느낌 (따옴표)
+        if "‘" in sentence or "’" in sentence or "'" in sentence:
+            score += 1.0
+
+        # 4. 문장 길이 페널티 (너무 짧은 문장)
+        if len(sentence) < 20:
+            score -= 1.5
+
+        # 5. 첫/마지막 문장 약한 보너스 (강제 X)
         if index == 0 or index == total - 1:
-            return True
-        return False
+            score += 0.5
+
+        return score
