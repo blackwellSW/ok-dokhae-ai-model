@@ -69,6 +69,13 @@ def run_cli_demo():
         if not key_nodes:
             print("핵심 노드를 찾지 못했습니다. 일반 문장으로 진행합니다.")
             key_nodes = nodes[:1]
+        
+        # DEBUG: show key nodes
+        print("\n[DEBUG] Key nodes selected:")
+        for n in key_nodes:
+            print(f"- idx={n['index']} roles={n['roles']} text={n['text'][:100]}")
+        print()
+        # DEBUG END
 
         # 4. 질문 및 답변 루프 (첫 번째 핵심 노드 대상)
         target_node = key_nodes[0]
