@@ -32,17 +32,26 @@ class LogicAnalyzer:
         # 텍스트를 문장 단위로 분리하고, 각 문장의 논리적 역할과 핵심 키워드를 추출합니다.
         sentences = kss.split_sentences(text)
         analyzed_nodes = []
+        nodes = []
+        total = len(sentences)
 
         for i, s in enumerate(sentences):
             roles = self._detect_roles(s)
+            roles = self._order_roles(roles)
+            if not roles:
+                roles = ["general"]
+
             keywords = self._extract_keywords(s)
+
+            score = self._score_sentence(s, roles, i, total)
             
             analyzed_nodes.append({
                 "index": i,
                 "text": s,
                 "roles": roles if roles else ["general"],
                 "keywords": keywords,
-                "is_key_node": self._check_if_key_node(roles, i, len(sentences))
+                "score": score,
+                "is_key_node": False
             })
             
         return analyzed_nodes
