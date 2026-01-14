@@ -21,7 +21,7 @@
 - feature/evaluation
 - feature/preprocessing
 
-### A. 질문 생성 개선 (Question Generation)
+### A. 질문 생성 개선 (Question Generation) - 최용빈
 **담당 파일**
 - `backend/logic/generator.py`
 
@@ -36,7 +36,7 @@
 
 ---
 
-### B. 논리 노드 정의 및 분석 개선 (Logic Analysis)
+### B. 논리 노드 정의 및 분석 개선 (Logic Analysis) - 박시우
 **담당 파일**
 - `backend/logic/analyzer.py`
 - (필요 시) `backend/logic/session.py`
@@ -68,7 +68,7 @@
 
 ---
 
-### D. 전처리 및 데이터 개선 (Preprocessing / Data)
+### D. 전처리 및 데이터 개선 (Preprocessing / Data) - 최다물
 **담당 파일**
 - `backend/fetch_data.py`
 - (선택) `notebooks/01_data_sanity.ipynb`
