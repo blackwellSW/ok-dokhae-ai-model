@@ -474,14 +474,12 @@ class QuestionGenerator:
             slots["snippet"] = self._extract_snippet(text)
             slots["keyword"] = self._extract_entity(text)
 
-        # NLI 라벨별 피드백 선택
+        # [수정] 템플릿 초기화 (기본값: neutral)
+        templates = self.feedback_templates["neutral"]
+
+        # NLI 라벨이 모순인 경우만 교체
         if nli_label == "contradiction":
             templates = self.feedback_templates["contradiction"]
-        elif nli_label == "neutral":
-            templates = self.feedback_templates["neutral"]
-        else:
-            # 기타 케이스는 neutral로 처리
-            templates = self.feedback_templates["neutral"]
 
         # 주제 이탈 감지 (STS 점수가 매우 낮은 경우)
         sts_score = evaluation.get("sts_score", 0.5)
