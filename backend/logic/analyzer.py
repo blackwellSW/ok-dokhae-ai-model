@@ -31,7 +31,6 @@ class LogicAnalyzer:
     def analyze(self, text: str) -> List[Dict]:
         # 텍스트를 문장 단위로 분리하고, 각 문장의 논리적 역할과 핵심 키워드를 추출합니다.
         sentences = kss.split_sentences(text)
-        analyzed_nodes = []
         nodes = []
         total = len(sentences)
 
@@ -45,16 +44,28 @@ class LogicAnalyzer:
 
             score = self._score_sentence(s, roles, i, total)
             
-            analyzed_nodes.append({
+            nodes.append({
                 "index": i,
                 "text": s,
-                "roles": roles if roles else ["general"],
+                "roles": roles,
                 "keywords": keywords,
                 "score": score,
                 "is_key_node": False
             })
+        K = 3
+        K = min(K, len(nodes))
+
+        if K == 0:
+            return nodes
+        
+        top_nodes = sorted(nodes, key=lambda x: x["score"], reverse=True)[:K]
+        top_indices = {n["index"] for n in top_nodes}
+
+        for n in nodes:
+            if n["index"] in top_indices:
+                n["is_key_node"] = True
             
-        return analyzed_nodes
+        return nodes
 
     def _detect_roles(self, sentence: str) -> List[str]:
         roles = []
