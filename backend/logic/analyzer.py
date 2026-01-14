@@ -78,6 +78,10 @@ class LogicAnalyzer:
                 elif re.search(pattern, sentence):
                     roles.append(role)
         return list(set(roles))
+    
+    def _order_roles(self, roles: list[str]) -> list[str]:
+        priority = ["claim", "result", "cause", "evidence", "contrast", "general"]
+        return [r for r in priority if r in roles]
 
     def _extract_keywords(self, sentence: str) -> List[str]:
         # TODO: KoNLPy 또는 Transformers 기반 키워드 추출 도입 가능
