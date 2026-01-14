@@ -1,13 +1,15 @@
 import sys
 import os
 import warnings
+from pathlib import Path
 
 # Kss 및 기타 라이브러리 경고/로그 숨기기
 os.environ["KSS_VERBOSE"] = "0"
 warnings.filterwarnings("ignore")
 
 # 패키지 경로 설정
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+repo_root = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(repo_root))
 
 try:
     from backend.logic.analyzer import LogicAnalyzer

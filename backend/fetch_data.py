@@ -1,6 +1,7 @@
 import json
 from datasets import load_dataset
 import random
+from pathlib import Path
 
 def fetch_samples():
     all_samples = []
@@ -70,10 +71,13 @@ def fetch_samples():
     # Limit to 100 total
     final_samples = all_samples[:100]
     
-    with open('/Users/home/Downloads/okdokhae/backend/data/samples.json', 'w', encoding='utf-8') as f:
+    backend_dir = Path(__file__).resolve().parent
+    out_path = backend_dir / "data" / "samples.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open('w', encoding='utf-8') as f:
         json.dump(final_samples, f, ensure_ascii=False, indent=2)
     
-    print(f"Successfully saved {len(final_samples)} samples to samples.json")
+    print(f"Successfully saved {len(final_samples)} samples to {out_path}")
 
 if __name__ == "__main__":
     fetch_samples()

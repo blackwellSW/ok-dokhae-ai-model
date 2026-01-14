@@ -4,7 +4,7 @@ import torch
 class Evaluator:
     def __init__(self):
         # 1. 유사도 평가 모델 (Bi-Encoder: 빠름)
-        self.sts_model = SentenceTransformer('snunlp/KR-SBERT-V40-KRE-STS')
+        self.sts_model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
         
         # 2. 논리적 일관성 평가 모델 (Cross-Encoder: 정확함, KLUE-NLI 기반)
         # 사용 가능한 적절한 공개 모델이 없을 경우 대비하여 try-except 구성

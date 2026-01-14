@@ -2,10 +2,11 @@ import sys
 import os
 import json
 import random
+from pathlib import Path
 
 # 프로젝트 루트 경로를 sys.path에 추가하여 패키지 임포트 문제 해결
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(current_dir)
+repo_root = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(repo_root))
 
 try:
     from backend.logic.analyzer import LogicAnalyzer
@@ -29,12 +30,12 @@ def run_cli_demo():
     print("초기화 완료!\n")
 
     # 2. 데이터셋 로드
-    samples_path = os.path.join(current_dir, 'backend', 'data', 'samples.json')
-    if not os.path.exists(samples_path):
+    samples_path = repo_root / "backend" / "data" / "samples.json"
+    if not samples_path.exists():
         print("에러: samples.json 파일을 찾을 수 없습니다. fetch_data.py를 먼저 실행해주세요.")
         return
 
-    with open(samples_path, 'r', encoding='utf-8') as f:
+    with samples_path.open('r', encoding='utf-8') as f:
         samples = json.load(f)
 
     while True:
