@@ -2,7 +2,7 @@
 
 ## git clone 이후 해야할 작업
 - 가상 환경 설치(선택) -> requirements 설치가 부담되면 나중에 지우기 편하도록 가상환경 사용 가능
-- pip install -r requiremnets.txt
+- pip install -r requirements.txt
 - 데이터 샘플 생성 : python backend/fetch_data.py - 생성 결과는 samples.json 파일
 - 데모 실행 : python backend/run_demo.py
 - 스모크 테스트 : python tests/core_test.py
