@@ -21,7 +21,7 @@
 - feature/evaluation
 - feature/preprocessing
 
-### A. 질문 생성 개선 (Question Generation)
+### A. 질문 생성 개선 (Question Gene빈
 **담당 파일**
 - `backend/logic/generator.py`
 
@@ -30,45 +30,7 @@
 - 논리 구조에 더 밀접한 질문으로 개선
 
 **예시 작업**
-- 질문 taxonomy 도입
-- 전제/원인/결과별 질문 유형 세분화
-- 범용 질문(“생각해보세요”) 비중 감소
-
----
-
-### B. 논리 노드 정의 및 분석 개선 (Logic Analysis)
-**담당 파일**
-- `backend/logic/analyzer.py`
-- (필요 시) `backend/logic/session.py`
-
-**목표**
-- 텍스트에서 핵심 논리 단위(전제, 주장, 근거 등) 추출 방식 개선
-
-**예시 작업**
-- 규칙 기반 → 통계/모델 기반 확장
-- 핵심 노드 개수 동적 조절
-- 문단 단위 논리 구조 분석
-
----
-
-### C. 이해도 평가 방식 개선 (Understanding Evaluation)
-**담당 파일**
-- `backend/logic/evaluator.py`
-
-**목표**
-- 사용자의 응답이
-  - 핵심 논리 노드를 얼마나 커버했는지
-  - 의미적으로 얼마나 일치하는지
-  를 더 정교하게 평가
-
-**예시 작업**
-- 키워드 매칭 → 임베딩 유사도 비교
-- STS/NLI 기반 평가 방식 개선
-- 점수 임계값 및 종료 조건 실험
-
----
-
-### D. 전처리 및 데이터 개선 (Preprocessing / Data)
+- 질문 물
 **담당 파일**
 - `backend/fetch_data.py`
 - (선택) `notebooks/01_data_sanity.ipynb`
