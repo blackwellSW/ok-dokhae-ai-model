@@ -11,11 +11,15 @@ class LogicAnalyzer:
             ],
             "claim": [
                 r"해야 한다", r"함이 중요하다", r"라고 주장한다", r"로 밝혀졌다",
-                r"임이 분명하다", r"할 필요가 있다", r"결론적으로"
+                r"임이 분명하다", r"할 필요가 있다", r"결론적으로",
+                r"공통점(이|을) 갖고 있다", r"주역", r"바꿨다", r"변경했다", r"없앴다",
+                r"전망했다", r"평가했다", r"꼽힌다", r"기여했다", r"강조했다",
+                r"부정했다", r"밝혔다", r"말했다", r"전했다", r"설명했다"
             ],
             "evidence": [
                 r"에 따르면", r"가 보여주듯", r"는 사실이다", r"예를 들어",
-                r"실제로", r"연구에 의하면", r"라는 조사 결과"
+                r"실제로", r"연구에 의하면", r"라는 조사 결과",
+                r"%", r"점", r"등급", r"최우수", r"우수", r"승", r"패"
             ],
             "cause": [
                 r"때문에", r"로 인하여", r"의 원인은", r"가 계기가 되어",
@@ -74,6 +78,8 @@ class LogicAnalyzer:
             roles = self._order_roles(roles)
             if not roles:
                 roles = ["general"]
+            if roles == ["general"] and not re.search(r"(\d|%|하지만|그러나|때문에|따라서|결론|정의|의미)", s):
+                continue
 
             primary = self._primary_role(roles, s)
             keywords = self._extract_keywords(s)
@@ -208,6 +214,13 @@ class LogicAnalyzer:
         if re.search(r"(란 |이란 |정의|의미|단위|라고 부른다|라 불리)", sentence):
             score += 1.0
 
+        # 숫자가 많으면 통계/기록 문장일 확률↑
+        digit_cnt = len(re.findall(r"\d", sentence))
+        if digit_cnt >= 2:
+            score += 0.3
+        if digit_cnt >= 6:
+            score += 0.3
+
         # 3. 고유명사/용어 느낌 (따옴표)
         if "‘" in sentence or "’" in sentence or "'" in sentence:
             score += 1.0
@@ -215,5 +228,8 @@ class LogicAnalyzer:
         # 4. 첫/마지막 문장 약한 보너스 (강제 X)
         if index == 0 or index == total - 1:
             score += 0.5
+        
+        if re.search(r"(말했|밝혔|주장했|강조했|부정했|전했|설명했|전망했)", sentence):
+            score += 1.0
 
         return score
