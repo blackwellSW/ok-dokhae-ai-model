@@ -1,5 +1,15 @@
 from sentence_transformers import SentenceTransformer, util, CrossEncoder
 import torch
+import sys
+import os
+from pathlib import Path
+
+# QuestionGenerator import를 위한 경로 설정
+current_dir = Path(__file__).resolve().parent
+if str(current_dir) not in sys.path:
+    sys.path.append(str(current_dir))
+
+from generator import QuestionGenerator
 
 class Evaluator:
     def __init__(self):
@@ -7,11 +17,13 @@ class Evaluator:
         self.sts_model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
         
         # 2. 논리적 일관성 평가 모델 (Cross-Encoder: 정확함, KLUE-NLI 기반)
-        # 사용 가능한 적절한 공개 모델이 없을 경우 대비하여 try-except 구성
         try:
             self.nli_model = CrossEncoder('klue/roberta-base-nli')
         except:
             self.nli_model = None
+            
+        # 3. 질문/피드백 생성기
+        self.generator = QuestionGenerator()
 
     def evaluate_answer(self, user_answer: str, reference_text: str):
         """
@@ -26,17 +38,23 @@ class Evaluator:
         nli_label, nli_confidence = self._get_nli_status(user_answer, reference_text)
         
         # 종합 판단
-        # - 유사도가 높고(>0.5) 함의(Entailment)인 경우: 최상
-        # - 모순(Contradiction)인 경우: 유사도와 관계없이 오답 처리 권장
         is_passed = (sts_score > 0.6) and (nli_label != "contradiction")
         
-        return {
+        # 평가 결과 딕셔너리
+        result = {
             "sts_score": sts_score,
             "nli_label": nli_label,
             "nli_confidence": nli_confidence,
             "is_passed": is_passed,
-            "feedback": self._generate_feedback(is_passed, nli_label, sts_score)
+            "user_answer": user_answer  # [중요] generator 전달용
         }
+        
+        # 피드백 생성 (Generator 위임)
+        # reference_text를 node 정보로 활용
+        node = {"text": reference_text}
+        result["feedback"] = self.generator.generate_feedback_question(result, node=node)
+        
+        return result
 
     def _get_sts_score(self, text1: str, text2: str) -> float:
         embeddings = self.sts_model.encode([text1, text2])
@@ -54,11 +72,3 @@ class Evaluator:
         
         return labels[label_id], float(torch.softmax(torch.tensor(scores), dim=1)[0][label_id].item())
 
-    def _generate_feedback(self, is_passed, nli_label, sts_score):
-        if nli_label == "contradiction":
-            return "본문과 상충되는 내용이 포함되어 있습니다. 다시 한번 읽어볼까요?"
-        if is_passed:
-            return "정확한 이해입니다! 핵심을 잘 짚어내셨어요."
-        if sts_score < 0.3:
-            return "답변이 본문의 주제와 다소 거리가 있는 것 같습니다."
-        return "조금 더 구체적으로 본문의 핵심어를 포함해서 답변해 보세요."
