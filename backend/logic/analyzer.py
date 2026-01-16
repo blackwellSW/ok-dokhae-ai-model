@@ -13,8 +13,9 @@ class LogicAnalyzer:
                 r"해야 한다", r"함이 중요하다", r"라고 주장한다", r"로 밝혀졌다",
                 r"임이 분명하다", r"할 필요가 있다", r"결론적으로",
                 r"공통점(이|을) 갖고 있다", r"주역", r"바꿨다", r"변경했다", r"없앴다",
-                r"전망했다", r"평가했다", r"꼽힌다", r"기여했다", r"강조했다",
-                r"부정했다", r"밝혔다", r"말했다", r"전했다", r"설명했다"
+                r"전망(했|했다|된다)", r"평가(했|했다|된다)", r"꼽힌다", r"기여(했|했다|된다)", 
+                r"강조했다", r"부정했다", r"밝혔다", r"말했다", r"전했다", r"설명했다",
+                r"분석(했|했다|된다)", r"풀이(했|했다|된다)", r"해석(했|했다|된다)", r"추정(했|했다|된다)"
             ],
             "evidence": [
                 r"에 따르면", r"가 보여주듯", r"는 사실이다", r"예를 들어",
@@ -129,6 +130,7 @@ class LogicAnalyzer:
                 if can_take(n):
                     priority_anchor = n
                     break
+
         if priority_anchor:
             selected.append(priority_anchor)
             t = priority_anchor["type"]
@@ -156,6 +158,7 @@ class LogicAnalyzer:
                 selected.append(n)
 
         return {n["index"] for n in selected}
+    
     def _detect_roles(self, sentence: str) -> List[str]:
         roles = set()
         for role, pats in self.patterns.items():
@@ -207,18 +210,23 @@ class LogicAnalyzer:
             "contrast": 1.0,
             "general": 0.5
         }
-        for r in roles:
-            score += role_weight.get(r, 0.5)
+        primary = self._primary_role(roles, sentence)
+        
+        score += role_weight.get(primary, 0.5)
 
-        # 2. 정의 / 분류 패턴 가산 (서사·설명 텍스트 대응)
-        if re.search(r"(란 |이란 |정의|의미|단위|라고 부른다|라 불리)", sentence):
-            score += 1.0
+        secondary = [r for r in roles if r != primary]
+        score += 0.3 * len(secondary)
+
+        # 정의 / 분류 패턴 가산 (서사·설명 텍스트 대응)
+        if primary == "definition" and re.search(r"(란 |이란 |정의|의미|단위|라고 부른다|라 불리)", sentence):
+            score += 0.7
 
         # 숫자가 많으면 통계/기록 문장일 확률↑
         digit_cnt = len(re.findall(r"\d", sentence))
-        if digit_cnt >= 2:
+        has_unit = bool(re.search(r"(%|점|등급|승|패|명|원|만원|억|배|년|월|일)", sentence))
+        if digit_cnt >= 2 and has_unit:
             score += 0.3
-        if digit_cnt >= 6:
+        if digit_cnt >= 6 and has_unit:
             score += 0.3
 
         # 3. 고유명사/용어 느낌 (따옴표)
