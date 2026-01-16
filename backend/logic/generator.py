@@ -23,7 +23,8 @@ class QuestionGenerator:
     }
     MIN_CONFIDENCE_THRESHOLD: float = 0.70  # 70% 미만이면 general로 처리
 
-    def __init__(self):
+    def __init__(self, seed: Optional[int] = None):
+        self.rng = random.Random(seed)
         # [2] Template: 동적 슬롯({snippet}, {entity})이 포함된 질문 템플릿
         self.templates: Dict[str, List[str]] = {
             "definition": [
@@ -99,7 +100,7 @@ class QuestionGenerator:
                 "'{entity}'(으)로 인한 결과를 바탕으로, 저자가 다음 단락에서 어떤 논리를 펴나갈 것이라 예상하나요?",
                 
                 # [Bloom: Create] 가설 및 적용
-                "만약 이 결과('${snippet}')가 발생하지 않았다면, 상황은 어떻게 달라졌을까요?",
+                "만약 이 결과('{snippet}')가 발생하지 않았다면, 상황은 어떻게 달라졌을까요?",
                 
                 # [Thinking Routine] See-Think-Wonder (Wonder focus)
                 "이 결과와 관련하여 더 궁금한 점(Wonder)은 무엇인가요?",
@@ -263,7 +264,7 @@ class QuestionGenerator:
             return cleaned
 
         # 다양성을 위해 3가지 전략 중 하나 랜덤 선택
-        strategy = random.choice(["start", "middle", "end"])
+        strategy = self.rng.choice(["start", "middle", "end"])
         
         if strategy == "start":
             return cleaned[:max_length] + "..."
@@ -272,7 +273,7 @@ class QuestionGenerator:
             return "..." + cleaned[-max_length:]
             
         else: # middle
-            start_idx = random.randint(0, len(cleaned) - max_length)
+            start_idx = self.rng.randint(0, len(cleaned) - max_length)
             return "..." + cleaned[start_idx : start_idx + max_length] + "..."
 
     def _extract_entity(self, text: str) -> str:
@@ -307,7 +308,7 @@ class QuestionGenerator:
                 candidates.append(first_word)
 
         if candidates:
-            return random.choice(candidates)
+            return self.rng.choice(candidates)
 
         return "해당 내용"
 
@@ -336,15 +337,20 @@ class QuestionGenerator:
             return template
 
     # [4] History Management: 중복 방지 및 히스토리 관리
-    def _update_history(self, node: Dict, question: str) -> None:
+    def _update_history(self, node: Dict, template: str) -> None:
         """생성된 질문을 히스토리에 추가합니다."""
-        # 노드가 바뀌면 히스토리 초기화
-        node_id = node.get("id") or node.get("text", "")[:50]
+        node_id = node.get("id")
+        # id가 없으면 리셋
+        if not node_id:
+            self._history = []
+            self._current_node_id = None
+            return
+        
         if node_id != self._current_node_id:
             self._history = []
             self._current_node_id = node_id
 
-        self._history.append(question)
+        self._history.append(template)
 
     def _get_available_templates(self, template_list: List[str]) -> List[str]:
         """
@@ -378,26 +384,15 @@ class QuestionGenerator:
         Returns:
             생성된 질문 문자열
         """
-        # [1] Role: 우선순위 기반 역할 추출
+        # Role: 우선순위 기반 역할 추출
         primary_role = self.get_primary_role(node)
 
-        # [2] Template 선택
+        # Template 선택
         template_list = self.templates.get(primary_role, self.templates["general"])
 
-        # [4] History: 외부 히스토리와 내부 히스토리 병합
-        if history:
-            combined_history = list(set(self._history + history))
-        else:
-            combined_history = self._history
-
-        # 사용 가능한 템플릿 필터링
-        self._history = combined_history  # 임시 동기화
         available_templates = self._get_available_templates(template_list)
+        template = self.rng.choice(available_templates)
 
-        # 랜덤 선택
-        template = random.choice(available_templates)
-
-        # [2] Slot Filling: 동적 슬롯 채우기
         text = node.get("text", "")
         slots = {
             "snippet": self._extract_snippet(text),
@@ -405,10 +400,7 @@ class QuestionGenerator:
         }
 
         question = self._safe_format(template, slots)
-
-        # [4] History: 히스토리에 추가
         self._update_history(node, template)
-
         return question
 
     # [3] Feedback: NLI 라벨 기반 피드백 고도화
@@ -435,12 +427,12 @@ class QuestionGenerator:
 
         # 성공한 경우
         if is_passed:
-            template = random.choice(self.feedback_templates["pass"])
+            template = self.rng.choice(self.feedback_templates["pass"])
             return template
 
         # 답변이 너무 짧은 경우
         if user_answer and len(user_answer.strip()) < 10:
-            template = random.choice(self.feedback_templates["length_short"])
+            template = self.rng.choice(self.feedback_templates["length_short"])
             return template
 
         # 슬롯 준비
@@ -469,5 +461,5 @@ class QuestionGenerator:
         if sts_score < 0.2:
             templates = self.feedback_templates["off_topic"]
 
-        template = random.choice(templates)
+        template = self.rng.choice(templates)
         return self._safe_format(template, slots)
