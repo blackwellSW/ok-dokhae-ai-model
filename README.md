@@ -51,7 +51,7 @@
 
 ---
 
-### C. 이해도 평가 방식 개선 (Understanding Evaluation)
+### C. 이해도 평가 방식 개선 (Understanding Evaluation) - 송민경
 **담당 파일**
 - `backend/logic/evaluator.py`
 
@@ -85,3 +85,9 @@
 - `backend/logic/` 하위 파일들이 **코어 파이프라인**입니다.
 - 실험 결과는 Notion 등에 간단히 기록해주세요.
 - `__pycache__`, 가상환경, 대용량 데이터는 Git에 포함하지 않습니다.
+
+---
+## 1/16 작업 내용
+- analyzer.py, evaluator.py, generator.py 파일 merge 후 리팩토링
+- 중복 기능 제거, primary role 통일 등
+- 전처리된 데이터셋으로 리팩토링 후 개선도 분석
