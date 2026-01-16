@@ -30,7 +30,7 @@ def run_cli_demo():
     print("초기화 완료!\n")
 
     # 2. 데이터셋 로드
-    samples_path = repo_root / "data" / "samples.json"
+    samples_path = repo_root / "data" / "processed" / "processed_samples_ver2.json"
     if not samples_path.exists():
         print("에러: samples.json 파일을 찾을 수 없습니다. fetch_data.py를 먼저 실행해주세요.")
         return
@@ -48,7 +48,10 @@ def run_cli_demo():
         text = ""
         if choice == '1':
             sample = random.choice(samples)
-            text = sample.get('context', sample.get('sentence1', ''))
+            if sample.get("processed_sentences"):
+                text = "\n".join(sample["processed_sentences"])
+            else:
+                text = sample.get("context", sample.get("sentence1", ""))
             print(f"\n[선택된 샘플 소스: {sample.get('source')}]")
         else:
             text = input("\n분석할 텍스트를 입력하세요: ")
@@ -73,7 +76,7 @@ def run_cli_demo():
         # DEBUG: show key nodes
         print("\n[DEBUG] Key nodes selected:")
         for n in key_nodes:
-            print(f"- idx={n['index']} roles={n['roles']} text={n['text'][:100]}")
+            print(f"- idx={n['index']} score={n.get('score')} roles={n['roles']} text={n['text'][:100]}")
         print()
         # DEBUG END
 
