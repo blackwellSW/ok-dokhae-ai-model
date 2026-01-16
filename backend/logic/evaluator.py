@@ -4,6 +4,18 @@ import re
 from typing import List, Dict, Tuple
 
 class Evaluator:
+    ROLE_POLICY = {
+            # (coverage 임계치, unit_sim 임계치, final_score pass 기준)
+            "definition": {"unit_sim_th": 0.58, "pass_th": 0.55, "w_cov": 0.60, "w_sts": 0.40},
+            "claim":      {"unit_sim_th": 0.60, "pass_th": 0.55, "w_cov": 0.70, "w_sts": 0.30},
+            "result":     {"unit_sim_th": 0.60, "pass_th": 0.55, "w_cov": 0.70, "w_sts": 0.30},
+            "cause":      {"unit_sim_th": 0.60, "pass_th": 0.55, "w_cov": 0.70, "w_sts": 0.30},
+            "evidence":   {"unit_sim_th": 0.58, "pass_th": 0.55, "w_cov": 0.75, "w_sts": 0.25},
+            "contrast":   {"unit_sim_th": 0.58, "pass_th": 0.55, "w_cov": 0.75, "w_sts": 0.25},
+            "report":     {"unit_sim_th": 0.58, "pass_th": 0.55, "w_cov": 0.65, "w_sts": 0.35},
+            "general":    {"unit_sim_th": 0.60, "pass_th": 0.55, "w_cov": 0.70, "w_sts": 0.30},
+        }
+    
     def __init__(self):
         # 1. 유사도 평가 모델 (Bi-Encoder: 빠름)
         self.sts_model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
@@ -15,7 +27,7 @@ class Evaluator:
         except Exception:
             self.nli_model = None
 
-    def evaluate_answer(self, user_answer: str, reference_text: str) -> Dict:
+    def evaluate_answer(self, user_answer: str, reference_text: str, role: str = "general") -> Dict:
         """
         사용자 답변을 다각도로 평가합니다.
         1. STS Score: 답변 vs 핵심 논리 유닛들의 평균 유사도 (부분 정답 과대평가 방지)
@@ -54,8 +66,11 @@ class Evaluator:
         total_weight = sum(unit_weights)
         covered_units = []
         
+        policy = self.ROLE_POLICY.get(role, self.ROLE_POLICY["general"])
+        unit_sim_th = policy["unit_sim_th"]
+
         for i, sim in enumerate(unit_sims):
-            if sim > 0.6:  # 개별 유항 반영 임계값
+            if sim > unit_sim_th:  # 개별 유항 반영 임계값
                 covered_weight += unit_weights[i]
                 covered_units.append(unit_texts[i])
         
@@ -73,12 +88,14 @@ class Evaluator:
 
         # 6. 최종 이해 충실도 (Understanding Fidelity) 점수
         # 가중치: Coverage(0.7) + STS(0.3) - Penalty
-        final_score = (coverage_score * 0.7) + (sts_score * 0.3) - nli_penalty
+        w_cov = policy["w_cov"]
+        w_sts = policy["w_sts"]
+        final_score = (coverage_score * w_cov) + (sts_score * w_sts) - nli_penalty
         final_score = max(0.0, min(1.0, final_score))
         
         # 7. 종료 조건 (성공 여부)
         # STS와 Coverage가 일정 수준 이상이면 NLI 모순이 있어도 통과 가능 (NLI 오판 구제)
-        is_passed = final_score > 0.55
+        is_passed = final_score > policy["pass_th"]
         
         # 높은 수준의 이해도일 경우 추가 검증 (중요 유닛 누락 체크)
         important_missing = any(info["weight"] >= 1.4 and unit_texts[i] not in covered_units 
@@ -111,9 +128,9 @@ class Evaluator:
 
         # 2. 가중치 부여 패턴
         patterns = {
-            "claim": (r"결론적으로|따라서|그러므로|~해야 한다|~임이 분명하다|중요하다", 1.5),
+            "claim": (r"결론적으로|따라서|그러므로|해야 한다|임이 분명하다|중요하다", 1.5),
             "contrast": (r"하지만|그러나|반면|이와 달리|반대로", 1.3),
-            "evidence": (r"왜냐하면|~때문에|예를 들어|실제로|~에 따르면", 1.2)
+            "evidence": (r"왜냐하면|때문에|예를 들어|실제로|에 따르면", 1.2)
         }
         
         weighted_units = []
@@ -144,7 +161,10 @@ class Evaluator:
         label_id = torch.argmax(torch.tensor(scores)).item()
         labels = ["entailment", "neutral", "contradiction"]
         
-        return labels[label_id], float(torch.softmax(torch.tensor(scores), dim=1)[0][label_id].item())
+        logits = torch.tensor(scores).flatten()
+        probs = torch.softmax(logits, dim=0)
+        conf = float(probs[label_id].item())
+        return labels[label_id], conf
 
     def _generate_feedback(self, is_passed, nli_label, sts_score, coverage_score, logic_units_info, covered_units):
         if nli_label == "contradiction" and sts_score < 0.5:
@@ -169,67 +189,3 @@ class Evaluator:
             return "답변의 전반적인 방향은 맞지만, 의미적 정확성을 높이면 더 좋겠습니다."
             
         return "조금 더 깊이 있게 설명해 주실 수 있을까요? 핵심 논리 사이의 관계를 생각하며 답변해 보세요."
-from sentence_transformers import SentenceTransformer, util, CrossEncoder
-import torch
-
-class Evaluator:
-    def __init__(self):
-        # 1. 유사도 평가 모델 (Bi-Encoder: 빠름)
-        self.sts_model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
-        
-        # 2. 논리적 일관성 평가 모델 (Cross-Encoder: 정확함, KLUE-NLI 기반)
-        # 사용 가능한 적절한 공개 모델이 없을 경우 대비하여 try-except 구성
-        try:
-            self.nli_model = CrossEncoder('klue/roberta-base-nli')
-        except:
-            self.nli_model = None
-
-    def evaluate_answer(self, user_answer: str, reference_text: str):
-        """
-        사용자 답변을 다각도로 평가합니다.
-        1. Semantic Similarity (STS)
-        2. Logical Entailment (NLI)
-        """
-        # STS 점수 계산
-        sts_score = self._get_sts_score(user_answer, reference_text)
-        
-        # NLI 상태 분석 (함의, 중립, 모순)
-        nli_label, nli_confidence = self._get_nli_status(user_answer, reference_text)
-        
-        # 종합 판단
-        # - 유사도가 높고(>0.5) 함의(Entailment)인 경우: 최상
-        # - 모순(Contradiction)인 경우: 유사도와 관계없이 오답 처리 권장
-        is_passed = (sts_score > 0.6) and (nli_label != "contradiction")
-        
-        return {
-            "sts_score": sts_score,
-            "nli_label": nli_label,
-            "nli_confidence": nli_confidence,
-            "is_passed": is_passed,
-            "feedback": self._generate_feedback(is_passed, nli_label, sts_score)
-        }
-
-    def _get_sts_score(self, text1: str, text2: str) -> float:
-        embeddings = self.sts_model.encode([text1, text2])
-        score = util.cos_sim(embeddings[0], embeddings[1])
-        return float(score.item())
-
-    def _get_nli_status(self, answer: str, context: str):
-        if not self.nli_model:
-            return "neutral", 0.0
-        
-        # KLUE NLI Labels: 0: entailment, 1: neutral, 2: contradiction
-        scores = self.nli_model.predict([(context, answer)])
-        label_id = torch.argmax(torch.tensor(scores)).item()
-        labels = ["entailment", "neutral", "contradiction"]
-        
-        return labels[label_id], float(torch.softmax(torch.tensor(scores), dim=1)[0][label_id].item())
-
-    def _generate_feedback(self, is_passed, nli_label, sts_score):
-        if nli_label == "contradiction":
-            return "본문과 상충되는 내용이 포함되어 있습니다. 다시 한번 읽어볼까요?"
-        if is_passed:
-            return "정확한 이해입니다! 핵심을 잘 짚어내셨어요."
-        if sts_score < 0.3:
-            return "답변이 본문의 주제와 다소 거리가 있는 것 같습니다."
-        return "조금 더 구체적으로 본문의 핵심어를 포함해서 답변해 보세요."
