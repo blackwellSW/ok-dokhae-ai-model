@@ -81,11 +81,18 @@ def run_cli_demo():
         print("\n[AI 평가 중...]")
         result = evaluator.evaluate_answer(user_answer, target_node['text'])
 
+        # Generator를 이용한 피드백 생성 (템플릿 활용)
+        feedback_msg = generator.generate_feedback_question(
+            result, 
+            original_question=question, 
+            node=target_node
+        )
+
         print("\n" + "="*30)
         print(f"결과: {'성공!' if result['is_passed'] else '보완 필요'}")
         print(f"유사도 점수: {result['sts_score']:.2f}")
         print(f"논리적 관계: {result['nli_label']} ({result['nli_confidence']:.2f})")
-        print(f"AI 피드백: {result['feedback']}")
+        print(f"AI 피드백: {feedback_msg}")
         print("="*30)
 
         input("\n계속하려면 엔터를 누르세요...")
