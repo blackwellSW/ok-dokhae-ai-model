@@ -1,7 +1,4 @@
-"""
-QuestionGenerator - Phase 2 고도화 버전
-논리 역할 우선순위, 동적 슬롯 필링, NLI 기반 피드백, 히스토리 관리 기능 포함
-"""
+# QuestionGenerator : 논리 역할 우선순위, 동적 슬롯 필링, NLI 기반 피드백, 히스토리 관리 기능 포함
 import re
 import random
 from typing import List, Dict, Optional
@@ -13,24 +10,30 @@ class QuestionGenerator:
     Phase 2에서 역할 우선순위, 슬롯 필링, 피드백 고도화, 히스토리 관리 기능이 추가됨.
     """
 
-    # =====================================================================
     # [1] Role Priority: 논리 역할 우선순위 정의
-    # =====================================================================
     ROLE_PRIORITY_MAP: Dict[str, int] = {
-        "claim": 100,
-        "cause": 90,
+        "definition": 100,
+        "claim": 90,
         "result": 80,
-        "evidence": 70,
-        "contrast": 60,
+        "cause": 70,
+        "evidence": 60,
+        "contrast": 50,
+        "report": 40,
         "general": 0,
     }
     MIN_CONFIDENCE_THRESHOLD: float = 0.70  # 70% 미만이면 general로 처리
 
     def __init__(self):
-        # =====================================================================
         # [2] Template: 동적 슬롯({snippet}, {entity})이 포함된 질문 템플릿
-        # =====================================================================
         self.templates: Dict[str, List[str]] = {
+            "definition": [
+                "'{snippet}'에서 '{entity}'는 어떤 의미로 정의되나요?",
+                "본문에서 '{entity}'의 정의를 한 문장으로 정리해볼까요?",
+            ],
+            "report": [
+                "'{snippet}'라는 발언/전달이 나오는데, 이게 글의 논지에서 어떤 역할을 하나요?",
+                "이 발언('{snippet}')이 글 전체 주장과 어떻게 연결되나요?",
+            ],
             "claim": [
                 # [QAR: Think and Search] 주장 파악
                 "'{snippet}'에서 필자가 강조하고자 하는 핵심 주장은 무엇인가요?",
@@ -153,9 +156,7 @@ class QuestionGenerator:
             ],
         }
 
-        # =====================================================================
         # [3] Feedback Matrix: NLI 라벨별 피드백 템플릿
-        # =====================================================================
         self.feedback_templates: Dict[str, List[str]] = {
             "contradiction": [
                 "본문에서 '{quote}'라고 언급되었는데, 답변과 조금 상충하는 것 같아요. 다시 확인해 볼까요?",
@@ -205,9 +206,7 @@ class QuestionGenerator:
         self._history: List[str] = []
         self._current_node_id: Optional[str] = None
 
-    # =========================================================================
     # [1] Role Priority: 우선순위 기반 역할 추출 함수
-    # =========================================================================
     def get_primary_role(self, node: Dict) -> str:
         """
         node["roles"] 목록 중 가장 높은 우선순위의 역할을 반환합니다.
@@ -222,43 +221,33 @@ class QuestionGenerator:
 
         # roles가 문자열 리스트인 경우 (간단한 형태)
         if isinstance(roles[0], str):
-            candidate_roles = [r for r in roles if r in self.ROLE_PRIORITY_MAP]
-            if not candidate_roles:
+            candidate = [r for r in roles if r in self.ROLE_PRIORITY_MAP]
+            if not candidate:
                 return "general"
                 
             # 가중치 기반 확률적 선택 (Weighted Random Choice)
             # 점수가 높을수록 선택 확률 증가, 하지만 낮은 점수도 선택될 수 있음
-            weights = [self.ROLE_PRIORITY_MAP.get(r, 0) + 10 for r in candidate_roles] # +10 for smoothing
-            return random.choices(candidate_roles, weights=weights, k=1)[0]
+            return max(candidate, key=lambda r: self.ROLE_PRIORITY_MAP[r])
+
 
         # roles가 딕셔너리 리스트인 경우 (신뢰도 포함 형태)
         if isinstance(roles[0], dict):
-            candidates = []
-            weights = []
-            
-            for role_info in roles:
-                role_name = role_info.get("role", "general")
-                confidence = role_info.get("confidence", 0.0)
-                
-                if confidence < self.MIN_CONFIDENCE_THRESHOLD:
+            best_role, best_score = "general", 0.0
+            for info in roles:
+                role = info.get("role", "general")
+                conf = float(info.get("confidence", 0.0))
+                if conf < self.MIN_CONFIDENCE_THRESHOLD:
                     continue
-                    
-                priority = self.ROLE_PRIORITY_MAP.get(role_name, 0)
-                
-                candidates.append(role_name)
-                # 우선순위와 신뢰도를 결합하여 가중치 계산
-                weights.append(priority * confidence * 100)
-
-            if not candidates:
-                return "general"
-                
-            return random.choices(candidates, weights=weights, k=1)[0]
+                if role not in self.ROLE_PRIORITY_MAP:
+                    continue
+                score = self.ROLE_PRIORITY_MAP[role] * conf
+                if score > best_score:
+                    best_role, best_score = role, score
+            return best_role
 
         return "general"
 
-    # =========================================================================
     # [2] Template Slot Filling: 텍스트 스니펫 및 엔티티 추출
-    # =========================================================================
     def _extract_snippet(self, text: str, max_length: int = 40) -> str:
         """
         텍스트에서 핵심 문구(최대 max_length자)를 추출합니다.
@@ -346,9 +335,7 @@ class QuestionGenerator:
         except Exception:
             return template
 
-    # =========================================================================
     # [4] History Management: 중복 방지 및 히스토리 관리
-    # =========================================================================
     def _update_history(self, node: Dict, question: str) -> None:
         """생성된 질문을 히스토리에 추가합니다."""
         # 노드가 바뀌면 히스토리 초기화
@@ -379,9 +366,7 @@ class QuestionGenerator:
         self._history = []
         self._current_node_id = None
 
-    # =========================================================================
     # 메인 질문 생성 함수
-    # =========================================================================
     def generate(self, node: Dict, history: Optional[List[str]] = None) -> str:
         """
         분석된 노드 정보를 바탕으로 적절한 소크라테스식 질문을 생성합니다.
@@ -426,9 +411,7 @@ class QuestionGenerator:
 
         return question
 
-    # =========================================================================
     # [3] Feedback: NLI 라벨 기반 피드백 고도화
-    # =========================================================================
     def generate_feedback_question(
         self,
         evaluation: Dict,
