@@ -1,5 +1,6 @@
 import kss
 import re
+import hashlib
 from typing import List, Dict
 
 class LogicAnalyzer:
@@ -87,8 +88,12 @@ class LogicAnalyzer:
 
             # 후보만 score 계산
             score = self._score_sentence(s, roles, i, total)
-
+            
+            normalized = re.sub(r"\s+", " ", s).strip()
+            node_id = hashlib.sha1(f"{i}:{normalized}".encode("utf-8")).hexdigest()[:12]
+            
             nodes.append({
+                "id": node_id,
                 "index": i,
                 "text": s,
                 "roles": roles,
