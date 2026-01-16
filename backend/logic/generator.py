@@ -159,7 +159,7 @@ class QuestionGenerator:
             return template
 
     # [4] History Management: 중복 방지 및 히스토리 관리
-    def _update_history(self, node: Dict, template: str) -> None:
+    def _update_history(self, node: Dict, template_id: str) -> None:
         """생성된 질문을 히스토리에 추가합니다."""
         node_id = node.get("id")
         # id가 없으면 리셋
@@ -172,14 +172,14 @@ class QuestionGenerator:
             self._history = []
             self._current_node_id = node_id
 
-        self._history.append(template)
+        self._history.append(template_id)
 
-    def _get_available_templates(self, template_list: List[str]) -> List[str]:
+    def _get_available_templates(self, template_list: List[Dict[str, str]]) -> List[Dict[str, str]]:
         """
         히스토리에 없는 사용 가능한 템플릿을 반환합니다.
         모든 템플릿이 히스토리에 있으면 히스토리를 리셋하여 다시 랜덤하게 섞이도록 합니다.
         """
-        available = [t for t in template_list if t not in self._history]
+        available = [t for t in template_list if t["id"] not in self._history]
 
         if available:
             return available
@@ -195,7 +195,7 @@ class QuestionGenerator:
         self._current_node_id = None
 
     # 메인 질문 생성 함수
-    def generate(self, node: Dict) -> str:
+    def generate(self, node: Dict, history: Optional[List[str]] = None) -> str:
         """
         분석된 노드 정보를 바탕으로 적절한 소크라테스식 질문을 생성합니다.
 
@@ -211,9 +211,11 @@ class QuestionGenerator:
 
         # Template 선택
         template_list = self.templates.get(primary_role, self.templates["general"])
+        available = self._get_available_templates(template_list)
 
-        available_templates = self._get_available_templates(template_list)
-        template = self.rng.choice(available_templates)
+        chosen = self.rng.choice(available)
+        template_id = chosen["id"]
+        template_text = chosen["text"]
 
         text = node.get("text", "")
         slots = {
@@ -221,8 +223,8 @@ class QuestionGenerator:
             "entity": self._extract_entity(text),
         }
 
-        question = self._safe_format(template, slots)
-        self._update_history(node, template)
+        question = self._safe_format(template_text, slots)
+        self._update_history(node, template_id)
         return question
 
     # [3] Feedback: NLI 라벨 기반 피드백 고도화
