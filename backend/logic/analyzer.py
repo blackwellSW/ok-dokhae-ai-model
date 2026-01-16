@@ -12,11 +12,13 @@ class LogicAnalyzer:
             ],
             "claim": [
                 r"해야 한다", r"함이 중요하다", r"라고 주장한다", r"로 밝혀졌다",
-                r"임이 분명하다", r"할 필요가 있다", r"결론적으로",
-                r"공통점(이|을) 갖고 있다", r"주역", r"바꿨다", r"변경했다", r"없앴다",
-                r"전망(했|했다|된다)", r"평가(했|했다|된다)", r"꼽힌다", r"기여(했|했다|된다)", 
-                r"강조했다", r"부정했다", r"밝혔다", r"말했다", r"전했다", r"설명했다",
+                r"임이 분명하다", r"할 필요가 있다", r"결론적으로", r"공통점(이|을) 갖고 있다", 
+                r"주역", r"바꿨다", r"변경했다", r"없앴다", r"전망(했|했다|된다)", 
+                r"평가(했|했다|된다)", r"꼽힌다", r"기여(했|했다|된다)", r"부정했다",
                 r"분석(했|했다|된다)", r"풀이(했|했다|된다)", r"해석(했|했다|된다)", r"추정(했|했다|된다)"
+            ],
+            "report": [
+                r"강조했다", r"밝혔다", r"말했다", r"전했다", r"설명했다"
             ],
             "evidence": [
                 r"에 따르면", r"가 보여주듯", r"는 사실이다", r"예를 들어",
@@ -37,7 +39,7 @@ class LogicAnalyzer:
             ]
         }
 
-        self.role_priority = ["definition", "claim", "result", "cause", "evidence", "contrast", "general"]
+        self.role_priority = ["definition", "claim", "result", "cause", "evidence", "contrast", "report", "general"]
 
     def _should_filter_out(self, sentence: str) -> bool:
         s = sentence.strip()
