@@ -82,8 +82,9 @@ class LogicAnalyzer:
             roles = self._order_roles(roles)
             if not roles:
                 roles = ["general"]
-            if roles == ["general"] and not re.search(r"(\d|%|하지만|그러나|때문에|따라서|결론|정의|의미)", s):
+            if roles == ["general"] and self._is_low_info_general(s):
                 continue
+
 
             primary = self._primary_role(roles, s)
             keywords = self._extract_keywords(s)
@@ -110,15 +111,19 @@ class LogicAnalyzer:
             return []
 
         # Stage 2: Top-K 선택(다양성)
-        key_indices = self._select_topk_with_diversity(nodes, K=3)
+        key_ids = self._select_topk_with_diversity(nodes, K=3)
 
         for n in nodes:
-            if n["index"] in key_indices:
+            if n["id"] in key_ids:
                 n["is_key_node"] = True
 
         return nodes
     
-    def _select_topk_with_diversity(self, nodes: List[Dict], K: int = 3) -> set[int]:
+    def _is_low_info_general(self, sentence: str) -> bool:
+        return not re.search(r"(\d|%|하지만|그러나|때문에|따라서|결론|정의|의미|즉|요컨대|결국|다시 말해)", sentence)
+
+    
+    def _select_topk_with_diversity(self, nodes: List[Dict], K: int = 3) -> set[str]:
         # 점수 높은 순
         ranked = sorted(nodes, key=lambda x: x["score"], reverse=True)
 
@@ -164,7 +169,7 @@ class LogicAnalyzer:
                     continue
                 selected.append(n)
 
-        return {n["index"] for n in selected}
+        return {n["id"] for n in selected}
     
     def _detect_roles(self, sentence: str) -> List[str]:
         roles = set()
@@ -220,7 +225,9 @@ class LogicAnalyzer:
         primary = self._primary_role(roles, sentence)
         
         score += role_weight.get(primary, 0.5)
-
+        
+        # report가 점수로 과대평가 된다면 제외하기
+        # secondary = [r for r in roles if r != primary and r != "report"]
         secondary = [r for r in roles if r != primary]
         score += 0.3 * len(secondary)
 
@@ -244,7 +251,10 @@ class LogicAnalyzer:
         if index == 0 or index == total - 1:
             score += 0.5
         
-        if re.search(r"(말했|밝혔|주장했|강조했|부정했|전했|설명했|전망했)", sentence):
-            score += 1.0
+        if re.search(r"(말했|밝혔|전했|설명했)", sentence):
+            score += 0.2
+        if re.search(r"(주장했|강조했|부정했)", sentence) and primary in ("claim", "result"):
+            score += 0.4
+
 
         return score
