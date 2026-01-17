@@ -2,7 +2,8 @@
 import re
 import random
 from typing import List, Dict, Optional
-from .templates import QUESTION_TEMPLATES, FEEDBACK_TEMPLATES
+from .templates.question_templates import QUESTION_TEMPLATES
+from .templates.feedback_templates import FEEDBACK_TEMPLATES
 
 
 class QuestionGenerator:
