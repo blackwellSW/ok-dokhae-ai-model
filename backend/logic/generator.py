@@ -196,16 +196,6 @@ class QuestionGenerator:
 
     # 메인 질문 생성 함수
     def generate(self, node: Dict, history: Optional[List[str]] = None) -> str:
-        """
-        분석된 노드 정보를 바탕으로 적절한 소크라테스식 질문을 생성합니다.
-
-        Args:
-            node: 분석된 노드 정보 (text, roles 등 포함)
-            history: 외부에서 전달받는 히스토리 (선택적, 내부 히스토리와 병합됨)
-
-        Returns:
-            생성된 질문 문자열
-        """
         # Role: 우선순위 기반 역할 추출
         primary_role = self.get_primary_role(node)
 
@@ -234,17 +224,7 @@ class QuestionGenerator:
         original_question: Optional[str] = None,
         node: Optional[Dict] = None,
     ) -> str:
-        """
-        이해도 평가 결과에 따라 맞춤형 피드백을 생성합니다.
-
-        Args:
-            evaluation: 평가 결과 딕셔너리 (is_passed, nli_label, sts_score 등)
-            original_question: 원래 질문 (off_topic 피드백 시 사용)
-            node: 원본 노드 정보 (quote, snippet 추출에 사용)
-
-        Returns:
-            피드백 문자열
-        """
+        
         is_passed = evaluation.get("is_passed", False)
         nli_label = evaluation.get("nli_label", "neutral")
         user_answer = evaluation.get("user_answer", "")

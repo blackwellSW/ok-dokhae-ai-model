@@ -93,7 +93,7 @@ class LogicAnalyzer:
             score = self._score_sentence(s, roles, i, total)
             
             normalized = re.sub(r"\s+", " ", s).strip()
-            node_id = hashlib.sha1(f"{i}:{normalized}".encode("utf-8")).hexdigest()[:12]
+            node_id = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:12]
             
             nodes.append({
                 "id": node_id,

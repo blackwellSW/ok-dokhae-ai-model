@@ -45,7 +45,8 @@ class Evaluator:
                 "coverage_score": 0.0,
                 "final_score": 0.0,
                 "nli_label": "neutral",
-                "feedback": "답변을 입력해 주세요."
+                "nli_confidence": 0.0,
+                "user_answer": user_answer,
             }
 
         # 1. 핵심 논리 유닛 및 가중치 추출
@@ -110,7 +111,7 @@ class Evaluator:
             "nli_label": nli_label,
             "nli_confidence": round(nli_confidence, 3),
             "is_passed": is_passed,
-            "feedback": self._generate_feedback(is_passed, nli_label, sts_score, coverage_score, logic_units_info, covered_units)
+            "user_answer": user_answer,
         }
 
     def _get_weighted_logic_units(self, text: str) -> List[Dict]:
@@ -166,26 +167,26 @@ class Evaluator:
         conf = float(probs[label_id].item())
         return labels[label_id], conf
 
-    def _generate_feedback(self, is_passed, nli_label, sts_score, coverage_score, logic_units_info, covered_units):
-        if nli_label == "contradiction" and sts_score < 0.5:
-            return "본문과 상충되는 핵심 내용이 있습니다. 다시 한번 꼼꼼히 읽어보세요."
+    # def _generate_feedback(self, is_passed, nli_label, sts_score, coverage_score, logic_units_info, covered_units):
+    #     if nli_label == "contradiction" and sts_score < 0.5:
+    #         return "본문과 상충되는 핵심 내용이 있습니다. 다시 한번 꼼꼼히 읽어보세요."
         
-        if is_passed:
-            if coverage_score > 0.9:
-                return "완벽합니다! 지문의 핵심 논리를 아주 정확하게 파악하셨어요."
-            return "핵심 내용을 잘 짚어내셨습니다. 이해 충실도가 높네요."
+    #     if is_passed:
+    #         if coverage_score > 0.9:
+    #             return "완벽합니다! 지문의 핵심 논리를 아주 정확하게 파악하셨어요."
+    #         return "핵심 내용을 잘 짚어내셨습니다. 이해 충실도가 높네요."
         
-        # 미흡한 경우 상세 피드백
-        important_missed = [info["text"] for info in logic_units_info 
-                           if info["weight"] >= 1.3 and info["text"] not in covered_units]
+    #     # 미흡한 경우 상세 피드백
+    #     important_missed = [info["text"] for info in logic_units_info 
+    #                        if info["weight"] >= 1.3 and info["text"] not in covered_units]
         
-        if important_missed:
-            return f"가장 중요한 지점('{important_missed[0][:15]}...')에 대한 이해를 조금 더 보완해볼까요?"
+    #     if important_missed:
+    #         return f"가장 중요한 지점('{important_missed[0][:15]}...')에 대한 이해를 조금 더 보완해볼까요?"
             
-        if coverage_score < 0.5:
-            return "본문의 핵심적인 내용들을 조금 더 구체적으로 포함해서 답변해 보세요."
+    #     if coverage_score < 0.5:
+    #         return "본문의 핵심적인 내용들을 조금 더 구체적으로 포함해서 답변해 보세요."
             
-        if sts_score < 0.4:
-            return "답변의 전반적인 방향은 맞지만, 의미적 정확성을 높이면 더 좋겠습니다."
+    #     if sts_score < 0.4:
+    #         return "답변의 전반적인 방향은 맞지만, 의미적 정확성을 높이면 더 좋겠습니다."
             
-        return "조금 더 깊이 있게 설명해 주실 수 있을까요? 핵심 논리 사이의 관계를 생각하며 답변해 보세요."
+    #     return "조금 더 깊이 있게 설명해 주실 수 있을까요? 핵심 논리 사이의 관계를 생각하며 답변해 보세요."
