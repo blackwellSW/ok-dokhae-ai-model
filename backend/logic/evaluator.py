@@ -23,8 +23,9 @@ class Evaluator:
         # 2. 논리적 일관성 평가 모델 (Cross-Encoder: 정확함, KLUE-NLI 기반)
         # 사용 가능한 적절한 공개 모델이 없을 경우 대비하여 try-except 구성
         try:
-            self.nli_model = CrossEncoder('klue/roberta-base-nli')
-        except Exception:
+            self.nli_model = CrossEncoder('cross-encoder/nli-roberta-base')
+        except Exception as e:
+            print("[WARN] NLI model load failed:", repr(e))
             self.nli_model = None
 
     def evaluate_answer(self, user_answer: str, reference_text: str, role: str = "general") -> Dict:
@@ -44,7 +45,7 @@ class Evaluator:
                 "sts_score": 0.0,
                 "coverage_score": 0.0,
                 "final_score": 0.0,
-                "nli_label": "neutral",
+                "nli_label": "unavailable",
                 "nli_confidence": 0.0,
                 "user_answer": user_answer,
             }
@@ -155,7 +156,7 @@ class Evaluator:
 
     def _get_nli_status(self, answer: str, context: str):
         if not self.nli_model:
-            return "neutral", 0.0
+            return "unavailable", 0.0
         
         # KLUE NLI Labels: 0: entailment, 1: neutral, 2: contradiction
         scores = self.nli_model.predict([(context, answer)])
