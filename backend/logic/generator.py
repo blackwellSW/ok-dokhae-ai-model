@@ -232,6 +232,20 @@ class QuestionGenerator:
         template_id = chosen["id"]
         template_text = chosen["text"]
 
+        if primary_role == "evidence":
+            text = node.get("text", "") or ""
+            sentence_count = len([s for s in re.split(r"[.!?]\s*", text) if s.strip()])
+
+            is_too_short = len(text.strip()) < 80  # 임계값은 필요하면 조정
+            is_single_sentence = sentence_count <= 1
+
+            if template_id == "evidence_02" and (is_too_short or is_single_sentence):
+                fallback_candidates = [t for t in available if t["id"] != "evidence_02"]
+                if fallback_candidates:
+                    chosen = self.rng.choice(fallback_candidates)
+                    template_id = chosen["id"]
+                    template_text = chosen["text"]
+
         text = node.get("text", "")
         slots = {
             "snippet": self._extract_snippet(text),

@@ -8,7 +8,7 @@ class LogicAnalyzer:
         # 논리적 표지어 사전 고도화
         self.patterns = {
             "definition": [
-                r"란 ", r"이란 ", r"정의", r"의미", r"단위", r"라 불리", r"라고 부른다"
+                r"란\s", r"이란\s", r"라고\s*(?:한다|부른다)", r"라\s*불리", r"즉\b", r"다시\s*말해"
             ],
             "claim": [
                 r"해야 한다", r"함이 중요하다", r"라고 주장한다", r"로 밝혀졌다",
@@ -191,7 +191,7 @@ class LogicAnalyzer:
 
         # definition 과검출 완화
         if ordered[0] == "definition":
-            if re.search(r"(란 |이란 |정의|의미|단위|라고 부른다|라 불리)", sentence):
+            if re.search(r"(란\s|이란\s|라고\s*(?:한다|부른다)|라\s*불리|즉\b|다시\s*말해)", sentence):
                 return "definition"
             # 단순 "이다"만으로 definition 된 케이스는 다음 우선순위로
             for r in ordered[1:]:
