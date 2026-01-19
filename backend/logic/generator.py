@@ -11,6 +11,17 @@ class QuestionGenerator:
     분석된 논리 노드 정보를 기반으로 소크라테스식 질문을 생성하는 클래스.
     Phase 2에서 역할 우선순위, 슬롯 필링, 피드백 고도화, 히스토리 관리 기능이 추가됨.
     """
+    _ENTITY_STOPWORDS = {
+        "것", "수", "점", "데", "때", "년", "월", "일",
+        "내용", "의미", "이유", "부분", "문장", "본문",
+        "질문", "답변", "사람", "경우", "상황",
+        "관련", "대해", "통해", "정도",
+    }
+
+    _BAD_ENTITY_PATTERNS = [
+        r".*(하다|되다|이다)$",
+        r"^[0-9]+$",
+    ]
 
     # [1] Role Priority: 논리 역할 우선순위 정의
     ROLE_PRIORITY_MAP: Dict[str, int] = {
@@ -119,15 +130,28 @@ class QuestionGenerator:
         for pattern in patterns:
             matches = re.findall(pattern, text)
             for match in matches:
-                # 의존명사 등 불용어 제외
-                if match[0] not in ["할수", "하는", "있는", "어떤"]:
-                    candidates.append(match[0])
+                w = match[0].strip()
+
+                if w in self._ENTITY_STOPWORDS:
+                    continue
+
+                if any(re.match(p, w) for p in self._BAD_ENTITY_PATTERNS):
+                    continue
+
+                if len(w) < 2:
+                    continue
+
+                candidates.append(w)
         
         # 첫 단어도 후보에 포함 (명사일 확률 높음)
         words = text.split()
         if words:
             first_word = re.sub(r"[^가-힣]", "", words[0])
-            if len(first_word) >= 2:
+            if (
+                len(first_word) >= 2
+                and first_word not in self._ENTITY_STOPWORDS
+                and not any(re.match(p, first_word) for p in self._BAD_ENTITY_PATTERNS)
+            ):
                 candidates.append(first_word)
 
         if candidates:
