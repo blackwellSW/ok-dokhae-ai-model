@@ -73,9 +73,8 @@ class OkDokHaeCore:
         self.session_manager.submit_reasoning(
             session_id=session_id,
             reasoning_text=reasoning_text,
-            validator_fn=lambda **_: result
+            validation_result=result
         )
-
         return {
             "session_id": session_id,
             "stage": "done",
