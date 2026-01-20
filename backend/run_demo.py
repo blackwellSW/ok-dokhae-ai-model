@@ -126,7 +126,11 @@ def run_cli_demo():
                 if 0 <= j < len(evidence_cands):
                     evidence_texts.append(evidence_cands[j]["text"].strip())
         
-        question = "선택한 근거로 주장을 설명하시오."
+        question = (
+            f"주장: {claim_text}\n"
+            f"근거: {' / '.join(evidence_texts) if evidence_texts else '(없음)'}\n"
+            "위 근거를 사용해 주장을 논리적으로 설명하시오."
+        )
         print(f"\nAI 질문: {question}")
         reasoning_text = input("당신의 설명(Reasoning): ").strip()
 
@@ -140,6 +144,7 @@ def run_cli_demo():
 
         print("\n" + "="*30)
         print(f"라벨: {result['label']}")
+        print(f"진단(diag): {result.get('diag')}")
         print(f"스코어: {result['scores']}")
         print("="*30)
         input("\n계속하려면 엔터를 누르세요...")
