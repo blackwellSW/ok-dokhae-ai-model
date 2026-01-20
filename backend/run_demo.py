@@ -1,5 +1,4 @@
 import sys
-import os
 import json
 import random
 from pathlib import Path
@@ -9,18 +8,17 @@ repo_root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(repo_root))
 
 try:
-    from sentence_transformers import util as st_util
-except Exception:
-    st_util = None
-
-try:
     from backend.logic.analyzer import LogicAnalyzer
     from backend.logic.evaluator import Evaluator
-    from backend.logic.generator import QuestionGenerator
 except ImportError as e:
     print(f"임포트 에러: {e}")
     print("패키지 구조를 확인해주세요.")
     sys.exit(1)
+
+def pick_candidates(nodes, types, top_k=5):
+    cand = [n for n in nodes if n.get("type") in types]
+    cand = sorted(cand, key=lambda x: x.get("score", 0), reverse=True)
+    return cand[:top_k]
 
 def run_cli_demo():
     print("="*50)
@@ -31,13 +29,12 @@ def run_cli_demo():
     print("모델 및 분석기 초기화 중... (최초 실행 시 시간이 걸릴 수 있습니다)")
     analyzer = LogicAnalyzer()
     evaluator = Evaluator()
-    generator = QuestionGenerator()
     print("초기화 완료!\n")
 
     # 2. 데이터셋 로드
     samples_path = repo_root / "data" / "processed" / "cleaned_contexts.json"
     if not samples_path.exists():
-        print("에러: samples.json 파일을 찾을 수 없습니다. fetch_data.py를 먼저 실행해주세요.")
+        print("에러: 파일을 찾을 수 없습니다. fetch_data.py를 먼저 실행해주세요.")
         return
 
     with samples_path.open('r', encoding='utf-8') as f:
@@ -58,8 +55,10 @@ def run_cli_demo():
             else:
                 text = sample.get("context", sample.get("sentence1", ""))
             print(f"\n[선택된 샘플 소스: {sample.get('source')}]")
-        else:
+        elif choice == '2':
             text = input("\n분석할 텍스트를 입력하세요: ")
+        else:
+            continue
 
         if not text:
             continue
@@ -72,130 +71,77 @@ def run_cli_demo():
         # 3. 분석 시작
         print("\n[AI 분석 중...]")
         nodes = analyzer.analyze(text)
-        key_nodes = [n for n in nodes if n['is_key_node']]
+        if not nodes:
+            print("분석 결과가 비어있습니다. 입력 텍스트를 바꿔주세요.")
+            continue
+
+        claim_cands = pick_candidates(nodes, types={"claim", "result", "definition"}, top_k=5)
+        evidence_cands = pick_candidates(nodes, types={"evidence", "cause", "contrast"}, top_k=8)
         
-        if not key_nodes:
-            print("핵심 노드를 찾지 못했습니다. 일반 문장으로 진행합니다.")
-            key_nodes = nodes[:1]
-        
+        # fallback: 후보가 너무 적으면 점수 상위에서 채움
+        ranked = sorted(nodes, key=lambda x: x.get("score", 0), reverse=True)
+        if len(claim_cands) < 3:
+            claim_cands = ranked[:5]
+        if len(evidence_cands) < 3:
+            evidence_cands = ranked[:8]
+
+        key_nodes = [n for n in nodes if n.get('is_key_node')]
+
         # DEBUG: show key nodes
         print("\n[DEBUG] Key nodes selected:")
         for n in key_nodes:
-            print(f"- idx={n['index']} score={n.get('score')} roles={n['roles']} text={n['text'][:100]}")
+            print(f"- idx={n.get('index')} score={n.get('score')} roles={n.get('roles')} text={n.get('text')[:100]}")
         print()
         # DEBUG END
 
-        # 4. 질문 및 답변 루프 (첫 번째 핵심 노드 대상)
-        target_node = key_nodes[0]
-        question = generator.generate(target_node)
+        print("\n[주장 후보 선택]")
+        for i, n in enumerate(claim_cands):
+            print(f"{i}: (type={n.get('type')}, score={n.get('score',0):.2f}) {n['text'][:120]}")
 
-        print(f"\nAI 질문: {question}")
-        user_answer = input("당신의 답변: ")
+        raw = input("주장 후보 번호를 선택하거나(0~), 직접 입력하려면 그냥 엔터 후 직접 입력: ").strip()
 
-        # 5. 평가
-        print("\n[AI 평가 중...]")
-        role = generator.get_primary_role(target_node)
-
-        # DEBUG: evaluator readiness + policy
-        policy = evaluator.ROLE_POLICY.get(role, evaluator.ROLE_POLICY["general"])
-        print("\n[DEBUG] Evaluator status:")
-        print(f"- role={role}")
-        print(f"- NLI model loaded? {evaluator.nli_model is not None}")
-        print(f"- policy: unit_sim_th={policy['unit_sim_th']} pass_th={policy['pass_th']} w_cov={policy['w_cov']} w_sts={policy['w_sts']}")
-        # DEBUG END
-
-        result = evaluator.evaluate_answer(question, user_answer, target_node["text"], role=role)
-
-        # DEBUG: show logic units + similarity + coverage reconstruction
-        print("\n[DEBUG] Evaluation details:")
-        print(
-            f"- sts_score={result.get('sts_score')}, coverage_score={result.get('coverage_score')}, "
-            f"base_score={result.get('base_score')}, qa_score={result.get('qa_score')}, gate={result.get('gate')}, "
-            f"final_score={result.get('final_score')}, passed={result.get('is_passed')}"
-        )
-        print(f"- nli_label={result.get('nli_label')} nli_conf={result.get('nli_confidence')}")
-
-        logic_units_info = evaluator._get_weighted_logic_units(target_node["text"])
-        unit_texts = [info["text"] for info in logic_units_info]
-        unit_weights = [info["weight"] for info in logic_units_info]
-
-        print(f"- logic_units: {len(unit_texts)} units")
-        for i, info in enumerate(logic_units_info):
-            print(f"  * unit[{i}] w={info['weight']:.1f} text={info['text'][:80]}")
-
-        # Similarity + coverage reconstruction (to see what's being counted)
-        covered_units = []
-        if st_util is None:
-            print("  [WARN] sentence_transformers.util not available in run_demo.py, skipping unit similarity debug.")
+        if raw == "":
+            claim_text = input("주장을 직접 입력하세요: ").strip()
         else:
             try:
-                ans_emb = evaluator.sts_model.encode(user_answer.strip(), convert_to_tensor=True)
-                unit_embs = evaluator.sts_model.encode(unit_texts, convert_to_tensor=True)
-                sims = st_util.cos_sim(unit_embs, ans_emb).flatten().tolist()
+                idx = int(raw)
+            except ValueError:
+                print("숫자를 입력해주세요.")
+                continue
+            if not (0 <= idx < len(claim_cands)):
+                print("범위 밖 번호입니다.")
+                continue
+            claim_text = claim_cands[idx]["text"].strip()
+        
+        print("\n[근거 후보 선택] (여러 개면 쉼표로 입력, 예: 0,2,3)")
+        for i, n in enumerate(evidence_cands):
+            print(f"{i}: (type={n.get('type')}, score={n.get('score',0):.2f}) {n['text'][:120]}")
 
-                th = policy["unit_sim_th"]
-                total_w = sum(unit_weights) if unit_weights else 0.0
-                covered_w = 0.0
+        raw = input("근거 번호(쉼표구분) 입력 (없으면 엔터): ").strip()
+        evidence_texts = []
+        if raw:
+            picks = [p.strip() for p in raw.split(",") if p.strip().isdigit()]
+            for p in picks:
+                j = int(p)
+                if 0 <= j < len(evidence_cands):
+                    evidence_texts.append(evidence_cands[j]["text"].strip())
+        
+        question = "선택한 근거로 주장을 설명하시오."
+        print(f"\nAI 질문: {question}")
+        reasoning_text = input("당신의 설명(Reasoning): ").strip()
 
-                # show top matches
-                ranked = sorted(list(enumerate(sims)), key=lambda x: x[1], reverse=True)
-                print(f"- unit_sim_th={th} (coverage threshold)")
-                print("- top unit matches:")
-                for rank, (idx, sim) in enumerate(ranked[: min(8, len(ranked))], start=1):
-                    mark = "COVER" if sim > th else "----"
-                    print(f"  {rank:>2}. [{mark}] sim={sim:.3f} w={unit_weights[idx]:.1f} text={unit_texts[idx][:80]}")
-
-                # compute covered units
-                margin = 0.06  # evaluator와 동일하게
-                lo = th - margin
-                hi = th + margin
-
-                for i, sim in enumerate(sims):
-                    if sim <= lo:
-                        contrib = 0.0
-                    elif sim >= hi:
-                        contrib = 1.0
-                    else:
-                        contrib = (sim - lo) / (hi - lo)  # 0~1
-
-                    covered_w += unit_weights[i] * contrib
-
-                    # 디버그 출력용: "커버됐다" 표시 기준(원하면 0.3~0.7로 조절)
-                    if contrib >= 0.5:
-                        covered_units.append(unit_texts[i])
-
-                cov = (covered_w / total_w) if total_w > 0 else 1.0
-                print(f"- reconstructed_coverage={cov:.3f} (covered_weight={covered_w:.2f} / total_weight={total_w:.2f})")
-
-                # important missing check (mirrors evaluator logic)
-                important_missing = [
-                    info["text"] for info in logic_units_info
-                    if info["weight"] >= 1.4 and info["text"] not in covered_units
-                ]
-                if important_missing:
-                    print(f"- important_missing (w>=1.4): {len(important_missing)}")
-                    print(f"  -> example: {important_missing[0][:120]}")
-                else:
-                    print("- important_missing (w>=1.4): none")
-
-            except Exception as e:
-                print(f"  [WARN] unit similarity debug failed: {e}")
-
-        print("[DEBUG END]\n")
-        # DEBUG END
-        feedback = generator.generate_feedback_question(
-            result,
-            original_question=question, 
-            node=target_node,
+        print("\n[AI Validation 중...]")
+        result = evaluator.validate_reasoning(
+            question=question,
+            claim_text=claim_text,
+            evidence_texts=evidence_texts,
+            reasoning_text=reasoning_text
         )
 
         print("\n" + "="*30)
-        print(f"결과: {'성공!' if result['is_passed'] else '보완 필요'}")
-        print(f"유사도 점수: {result['sts_score']:.2f}")
-        print(f"논리적 관계: {result['nli_label']} ({result['nli_confidence']:.2f})")
-        print(f"AI 피드백: {feedback}")
+        print(f"라벨: {result['label']}")
+        print(f"스코어: {result['scores']}")
         print("="*30)
-
         input("\n계속하려면 엔터를 누르세요...")
 
 if __name__ == "__main__":
