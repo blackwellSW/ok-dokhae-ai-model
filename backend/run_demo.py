@@ -104,11 +104,15 @@ def run_cli_demo():
         print(f"- policy: unit_sim_th={policy['unit_sim_th']} pass_th={policy['pass_th']} w_cov={policy['w_cov']} w_sts={policy['w_sts']}")
         # DEBUG END
 
-        result = evaluator.evaluate_answer(user_answer, target_node["text"], role=role)
+        result = evaluator.evaluate_answer(question, user_answer, target_node["text"], role=role)
 
         # DEBUG: show logic units + similarity + coverage reconstruction
         print("\n[DEBUG] Evaluation details:")
-        print(f"- sts_score={result.get('sts_score')}, coverage_score={result.get('coverage_score')}, final_score={result.get('final_score')}, passed={result.get('is_passed')}")
+        print(
+            f"- sts_score={result.get('sts_score')}, coverage_score={result.get('coverage_score')}, "
+            f"base_score={result.get('base_score')}, qa_score={result.get('qa_score')}, gate={result.get('gate')}, "
+            f"final_score={result.get('final_score')}, passed={result.get('is_passed')}"
+        )
         print(f"- nli_label={result.get('nli_label')} nli_conf={result.get('nli_confidence')}")
 
         logic_units_info = evaluator._get_weighted_logic_units(target_node["text"])
@@ -142,9 +146,22 @@ def run_cli_demo():
                     print(f"  {rank:>2}. [{mark}] sim={sim:.3f} w={unit_weights[idx]:.1f} text={unit_texts[idx][:80]}")
 
                 # compute covered units
+                margin = 0.06  # evaluator와 동일하게
+                lo = th - margin
+                hi = th + margin
+
                 for i, sim in enumerate(sims):
-                    if sim > th:
-                        covered_w += unit_weights[i]
+                    if sim <= lo:
+                        contrib = 0.0
+                    elif sim >= hi:
+                        contrib = 1.0
+                    else:
+                        contrib = (sim - lo) / (hi - lo)  # 0~1
+
+                    covered_w += unit_weights[i] * contrib
+
+                    # 디버그 출력용: "커버됐다" 표시 기준(원하면 0.3~0.7로 조절)
+                    if contrib >= 0.5:
                         covered_units.append(unit_texts[i])
 
                 cov = (covered_w / total_w) if total_w > 0 else 1.0

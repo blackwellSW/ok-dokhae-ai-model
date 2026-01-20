@@ -28,7 +28,7 @@ class Evaluator:
             print("[WARN] NLI model load failed:", repr(e))
             self.nli_model = None
 
-    def evaluate_answer(self, user_answer: str, reference_text: str, role: str = "general") -> Dict:
+    def evaluate_answer(self, question: str, user_answer: str, reference_text: str, role: str = "general") -> Dict:
         """
         사용자 답변을 다각도로 평가합니다.
         1. STS Score: 답변 vs 핵심 논리 유닛들의 평균 유사도 (부분 정답 과대평가 방지)
@@ -36,6 +36,7 @@ class Evaluator:
         3. NLI Penalty: 논리적 모순 발생 시 감점 (단독 탈락 조건은 아님)
         """
         # 0. 전처리
+        question = (question or "").strip()
         user_answer = user_answer.strip()
         reference_text = reference_text.strip()
         
@@ -62,6 +63,8 @@ class Evaluator:
         
         # 3. STS 점수: 각 유닛과의 유사도 평균 (전체 문맥 파악 정도)
         sts_score = sum(unit_sims) / len(unit_sims) if unit_sims else 0.0
+        qa_raw = self._get_sts_score(question, user_answer) if question else 1.0
+        qa_score = max(0.0, min(1.0, qa_raw))
         
         # 4. Weighted Coverage 계산
         covered_weight = 0.0
@@ -71,9 +74,19 @@ class Evaluator:
         policy = self.ROLE_POLICY.get(role, self.ROLE_POLICY["general"])
         unit_sim_th = policy["unit_sim_th"]
 
+        margin = 0.06
         for i, sim in enumerate(unit_sims):
-            if sim > unit_sim_th:  # 개별 유항 반영 임계값
-                covered_weight += unit_weights[i]
+            lo = unit_sim_th - margin
+            hi = unit_sim_th + margin
+            if sim <= lo:
+                contrib = 0.0
+            elif sim >= hi:
+                contrib = 1.0
+            else:
+                contrib = (sim - lo) / (hi - lo)
+            
+            covered_weight += unit_weights[i] * contrib
+            if contrib >= 0.5:
                 covered_units.append(unit_texts[i])
         
         coverage_score = covered_weight / total_weight if total_weight > 0 else 1.0
@@ -92,7 +105,9 @@ class Evaluator:
         # 가중치: Coverage(0.7) + STS(0.3) - Penalty
         w_cov = policy["w_cov"]
         w_sts = policy["w_sts"]
-        final_score = (coverage_score * w_cov) + (sts_score * w_sts) - nli_penalty
+        base_score = (coverage_score * w_cov) + (sts_score * w_sts) - nli_penalty
+        gate = 0.4 + 0.6 * qa_score            # qa_score=0이어도 완전 0은 아니게(학습 안정성)
+        final_score = base_score * gate
         final_score = max(0.0, min(1.0, final_score))
         
         # 7. 종료 조건 (성공 여부)
@@ -113,6 +128,9 @@ class Evaluator:
             "nli_confidence": round(nli_confidence, 3),
             "is_passed": is_passed,
             "user_answer": user_answer,
+            "qa_score": round(qa_score, 3),
+            "base_score": round(base_score, 3),
+            "gate": round(gate, 3),
         }
 
     def _get_weighted_logic_units(self, text: str) -> List[Dict]:
@@ -122,9 +140,13 @@ class Evaluator:
         """
         # 1. 분리
         delimiters = r'[,.?!]|\s그리고\s|\s하지만\s|\s따라서\s|\s그러므로\s|\s그런데\s'
-        raw_units = re.split(delimiters, text)
-        refined_units = [u.strip() for u in raw_units if len(u.strip()) > 5]
-        
+        protected_text = re.sub(r'(\d),(\d)', r'\1<NUM_COMMA>\2', text)
+        raw_units = re.split(delimiters, protected_text)
+        refined_units = [
+            u.replace("<NUM_COMMA>", ",").strip()
+            for u in raw_units
+            if len(u.strip()) > 5
+        ]
         if not refined_units:
             refined_units = [text]
 
