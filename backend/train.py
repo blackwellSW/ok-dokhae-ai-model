@@ -3,6 +3,8 @@ import tempfile
 from pathlib import Path
 from typing import Dict, List, Tuple, Generator
 from contextlib import contextmanager
+import json
+import argparse
 
 import joblib
 from google.cloud import storage
@@ -78,7 +80,22 @@ def load_xy(path_str: str) -> Tuple[List[str], List[str]]:
     texts: List[str] = []
     labels: List[str] = []
     for obj in items:
-        text = (obj.get("input") or "").strip()
+        # If 'input' field exists (pre-processed), use it.
+        # Otherwise, construct it from raw fields (claim, evidence, reasoning, text).
+        if "input" in obj:
+            text = (obj.get("input") or "").strip()
+        else:
+            # Construct input for the model
+            passage = obj.get("text", "")
+            claim = obj.get("claim", "")
+            evidence = obj.get("evidence", [])
+            if isinstance(evidence, list):
+                evidence = " ".join(evidence)
+            reasoning = obj.get("reasoning", "")
+            
+            # Simple concatenated format
+            text = f"[PASSAGE]\n{passage}\n\n[CLAIM]\n{claim}\n\n[EVIDENCE]\n{evidence}\n\n[REASONING]\n{reasoning}"
+
         label = obj.get("label")
         if not text or not label:
             continue
@@ -139,19 +156,23 @@ def main() -> None:
         try:
             x_dev, y_dev = load_xy(dev_path)
             if x_dev:
-            preds = pipeline.predict(x_dev)
-            macro_f1 = f1_score(y_dev, preds, average="macro", zero_division=0)
-            print("[dev] macro_f1:", round(macro_f1, 4))
-            print(classification_report(y_dev, preds, digits=4, zero_division=0))
+                preds = pipeline.predict(x_dev)
+                macro_f1 = f1_score(y_dev, preds, average="macro", zero_division=0)
+                print("[dev] macro_f1:", round(macro_f1, 4))
+                print(classification_report(y_dev, preds, digits=4, zero_division=0))
+        except Exception as e:
+            print(f"[dev] evaluation failed: {e}")
 
     if test_path:
         try:
             x_test, y_test = load_xy(test_path)
             if x_test:
-            preds = pipeline.predict(x_test)
-            macro_f1 = f1_score(y_test, preds, average="macro", zero_division=0)
-            print("[test] macro_f1:", round(macro_f1, 4))
-            print(classification_report(y_test, preds, digits=4, zero_division=0))
+                preds = pipeline.predict(x_test)
+                macro_f1 = f1_score(y_test, preds, average="macro", zero_division=0)
+                print("[test] macro_f1:", round(macro_f1, 4))
+                print(classification_report(y_test, preds, digits=4, zero_division=0))
+        except Exception as e:
+            print(f"[test] evaluation failed: {e}")
 
     # Model Save
     model_out = args.model_out
