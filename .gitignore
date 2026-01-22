@@ -33,4 +33,31 @@ Thumbs.db
 # *.ckpt
 
 # HuggingFace 캐시 (로컬만)
-.huggingface/
+.huggingface/# Python
+__pycache__/
+*.pyc
+
+# Mac
+.DS_Store
+
+# Data (Excluded large/generated files)
+data/processed/dm/
+models/
+
+# GCP credentials keys (if any JSONs are dropped here)
+*.json
+!data/processed/*.jsonl
+!data/processed/dm/*.jsonl
+# But wait, we want to exclude generated DM clips?
+# User said "data/DM/v1" is what I touched.
+# Actually, let's look at the structure.
+# I want to IGNORE the split files: data/processed/dm/train.jsonl etc.
+# But I want to KEEP the config?
+# Config is python code.
+
+# Ignore all json key files for security
+*key.json
+*credentials.json
+
+# Ignore local env settings
+.env
