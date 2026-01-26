@@ -6,10 +6,10 @@ import os
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.logic.analyzer import LogicAnalyzer
-from app.logic.evaluator import Evaluator
-from app.logic.generator import QuestionGenerator
-from app.logic.session import SessionManager
+from app.models.analyzer import LogicAnalyzer
+from app.models.evaluator import Evaluator
+from app.models.generator import QuestionGenerator
+from app.models.session import SessionManager
 
 class OkDokHaeCore:
     """

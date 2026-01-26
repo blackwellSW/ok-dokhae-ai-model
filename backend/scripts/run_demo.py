@@ -12,9 +12,9 @@ backend_root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(backend_root))
 
 try:
-    from app.logic.analyzer import LogicAnalyzer
-    from app.logic.evaluator import Evaluator
-    from app.logic.generator import QuestionGenerator
+    from app.models.analyzer import LogicAnalyzer
+    from app.models.evaluator import Evaluator
+    from app.models.generator import QuestionGenerator
 except ImportError as e:
     print(f"임포트 에러: {e}")
     print("패키지 구조를 확인해주세요.")

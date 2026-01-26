@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.WARNING)
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.logic.generator import QuestionGenerator
+from app.models.generator import QuestionGenerator
 
 
 def test_deterministic_with_seed():

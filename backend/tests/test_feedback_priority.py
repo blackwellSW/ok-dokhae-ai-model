@@ -6,7 +6,7 @@ import os
 import logging
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.logic.generator import QuestionGenerator
+from app.models.generator import QuestionGenerator
 
 def test_feedback_priority():
     gen = QuestionGenerator(seed=42)
