@@ -5,8 +5,8 @@ import sys
 import os
 import logging
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from logic.generator import QuestionGenerator
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app.logic.generator import QuestionGenerator
 
 def test_feedback_priority():
     gen = QuestionGenerator(seed=42)

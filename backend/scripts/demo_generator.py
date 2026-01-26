@@ -6,8 +6,8 @@ import os
 import logging
 logging.basicConfig(level=logging.WARNING)
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from logic.generator import QuestionGenerator
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app.logic.generator import QuestionGenerator
 
 
 def demo():

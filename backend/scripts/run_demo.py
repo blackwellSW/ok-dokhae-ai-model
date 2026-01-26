@@ -5,13 +5,16 @@ import random
 from pathlib import Path
 
 # 프로젝트 루트 경로를 sys.path에 추가하여 패키지 임포트 문제 해결
-repo_root = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(repo_root))
+# 프로젝트 루트 경로 (ok-dokhae)
+repo_root = Path(__file__).resolve().parents[2]
+# 백엔드 루트 경로 (backend) - app 패키지 임포트용
+backend_root = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(backend_root))
 
 try:
-    from backend.logic.analyzer import LogicAnalyzer
-    from backend.logic.evaluator import Evaluator
-    from backend.logic.generator import QuestionGenerator
+    from app.logic.analyzer import LogicAnalyzer
+    from app.logic.evaluator import Evaluator
+    from app.logic.generator import QuestionGenerator
 except ImportError as e:
     print(f"임포트 에러: {e}")
     print("패키지 구조를 확인해주세요.")

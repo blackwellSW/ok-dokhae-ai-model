@@ -2,12 +2,14 @@ import sys
 import os
 
 # 패키지 경로를 추가하여 어디서든 실행 가능하게 함
+# 패키지 경로를 추가하여 어디서든 실행 가능하게 함
+import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.logic.analyzer import LogicAnalyzer
-from backend.logic.evaluator import Evaluator
-from backend.logic.generator import QuestionGenerator
-from backend.logic.session import SessionManager
+from app.logic.analyzer import LogicAnalyzer
+from app.logic.evaluator import Evaluator
+from app.logic.generator import QuestionGenerator
+from app.logic.session import SessionManager
 
 class OkDokHaeCore:
     """

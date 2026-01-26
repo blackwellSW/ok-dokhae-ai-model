@@ -9,9 +9,9 @@ import logging
 # 로깅 설정 (WARNING 레벨로 설정하여 테스트 중 로그 최소화)
 logging.basicConfig(level=logging.WARNING)
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from logic.generator import QuestionGenerator
+from app.logic.generator import QuestionGenerator
 
 
 def test_deterministic_with_seed():

@@ -71,7 +71,7 @@ def fetch_samples():
     # Limit to 100 total
     final_samples = all_samples[:100]
     
-    repo_root = Path(__file__).resolve().parents[1]
+    repo_root = Path(__file__).resolve().parents[2]
     out_path = repo_root / "data" / "samples.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open('w', encoding='utf-8') as f:

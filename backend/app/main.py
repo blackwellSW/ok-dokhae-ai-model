@@ -18,21 +18,23 @@ db = None
 analyzer = None
 evaluator = None
 
-# [3] 경로 및 임포트 최적화 (Docker 환경 대응)
-BASE_DIR = Path(__file__).resolve().parent
+# [3] 경로 및 임포트 최적화
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend/ directory
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
 try:
-    from logic.analyzer import LogicAnalyzer
-    from logic.evaluator import Evaluator
+    from app.logic.analyzer import LogicAnalyzer
+    from app.logic.evaluator import Evaluator
     logger.info("✅ 엔진 모듈 임포트 성공")
 except ImportError as e:
     logger.error(f"❌ 엔진 모듈 임포트 실패: {e}")
-    # 수동 경로 추가 시도
-    sys.path.append(os.path.join(os.getcwd(), "backend"))
-    from logic.analyzer import LogicAnalyzer
-    from logic.evaluator import Evaluator
+    # Docker/Production 환경 대비
+    try:
+        from .logic.analyzer import LogicAnalyzer
+        from .logic.evaluator import Evaluator
+    except ImportError:
+        raise e
 
 # [4] 서버 생명주기 관리 (Lazy Loading)
 @asynccontextmanager

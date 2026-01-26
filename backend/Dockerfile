@@ -22,7 +22,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 3. AI 모델 다운로드 (빌드 타임에 실행하여 이미지에 포함시킴)
-COPY download_model.py .
+COPY scripts/download_model.py .
 RUN python download_model.py
 
 # 4. 전체 파일 복사 (키 파일 포함)
@@ -32,4 +32,4 @@ COPY . .
 ENV PYTHONPATH=/app
 
 # 8080 포트에서 실행
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--timeout-keep-alive", "120"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--timeout-keep-alive", "120"]

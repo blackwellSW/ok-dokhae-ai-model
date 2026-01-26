@@ -38,3 +38,5 @@ Thumbs.db
 # Google Cloud Service Account Key
 firebase-key.json
 knu-team-03-e4bba38b267.json
+
+.env
