@@ -34,3 +34,7 @@ Thumbs.db
 
 # HuggingFace 캐시 (로컬만)
 .huggingface/
+
+# Google Cloud Service Account Key
+firebase-key.json
+knu-team-03-e4bba38b267.json

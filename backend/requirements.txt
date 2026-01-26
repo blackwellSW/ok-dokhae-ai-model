@@ -1,0 +1,19 @@
+# [서버 및 API]
+fastapi
+uvicorn
+pydantic
+
+# [데이터베이스 및 구글 클라우드] - ⚠️ 필수 추가!
+google-cloud-firestore
+google-auth
+
+# [AI 및 NLP 엔진]
+transformers
+sentence-transformers
+kss
+sentencepiece
+
+# [데이터 처리 및 유틸리티]
+pandas
+scikit-learn
+datasets

@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+.pytest_cache/
+.git/
+.gitignore
+#*.json
+# 나중에 GCP Secret Manager를 쓸 거니까, 일단 키 파일은 제외해!
