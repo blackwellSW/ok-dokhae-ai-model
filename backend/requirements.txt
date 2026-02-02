@@ -1,19 +1,15 @@
-# [Server and API]
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
-
-# [Database and Google Cloud]
+pydantic-settings
 google-cloud-firestore
 google-auth
-
-# [AI and NLP Engine]
+google-cloud-aiplatform
 transformers
 sentence-transformers
 kss
 sentencepiece
-
-# [Data Processing and Utilities]
 pandas
 scikit-learn
 datasets
+python-dotenv

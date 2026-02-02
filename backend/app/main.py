@@ -1,51 +1,36 @@
-import logging
-import sys
-from pathlib import Path
-from contextlib import asynccontextmanager
+"""
+main.py
+역할: FastAPI 애플리케이션 초기화 및 서버 통합 관리.
+"""
 
 from fastapi import FastAPI
-from app.api.inference import router as inference_router
-from app.services.inference_service import InferenceService
-from app.db.firestore import get_db
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.study_sessions import router as study_sessions_router
+from app.api.evaluation_controller import router as evaluation_router
 
-# [1] 로깅 설정
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# [2] 경로 설정
-BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
-if str(BASE_DIR) not in sys.path:
-    sys.path.append(str(BASE_DIR))
-
-# [3] 서버 생명주기
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("🚀 [STARTUP] Server initializing...")
-    
-    # 1. DB Check
-    db = get_db()
-    if db:
-        logger.info("✅ DB Connected.")
-    else:
-        logger.warning("⚠️ DB Connection Failed.")
-
-    # 2. Preload Models (Optional - can be lazy loaded via service)
-    # InferenceService.load_models() 
-    
-    yield
-    logger.info("🛑 [SHUTDOWN] Server stopping...")
-
-# [4] FastAPI 앱 초기화
 app = FastAPI(
-    title="OK-DOK-HAE API Server",
-    version="2.0.0",
-    description="Refactored API with Layered Architecture",
-    lifespan=lifespan
+    title="AI 학습 시스템 백엔드",
+    description="Stage-Gate-Branch 기반 학습 흐름 통제 시스템",
+    version="1.0.0"
 )
 
-# [5] 라우터 등록
-app.include_router(inference_router, prefix="/api/v1")
+# CORS 설정 (프론트엔드 연동 대비)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/", tags=["Health"])
+# 라우터 등록
+app.include_router(study_sessions_router)
+app.include_router(evaluation_router)
+
+@app.get("/")
 async def root():
-    return {"status": "online", "version": "2.0.0"}
+    return {"message": "AI Learning System Backend is running."}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
