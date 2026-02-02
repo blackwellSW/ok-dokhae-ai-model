@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+google-cloud-firestore
+google-auth
+google-cloud-aiplatform
+transformers
+sentence-transformers
+kss
+sentencepiece
+pandas
+scikit-learn
+datasets
+python-dotenv
