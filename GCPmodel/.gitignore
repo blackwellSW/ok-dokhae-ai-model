@@ -45,6 +45,8 @@ Thumbs.db
 *.pem
 .env
 *.json.backup*
+.gcp-key.json
+*-key.json
 
 # 기타
 *.log

@@ -1,0 +1,8 @@
+{
+    "endpoint_id": "2283851677146546176",
+    "model_id": "1663815080011104256",
+    "project_id": "knu-team-03",
+    "region": "us-central1",
+    "deployed_at": "2026-02-07T20:05:00+09:00",
+    "type": "vLLM-A100-eager-final"
+}

@@ -62,7 +62,7 @@ class SocraticConverter:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=self.api_key)
-                self.client = genai.GenerativeModel('gemini-pro')
+                self.client = genai.GenerativeModel('gemini-2.5-flash')
             except ImportError:
                 print("google-generativeai 패키지를 설치해주세요")
                 self.client = None
