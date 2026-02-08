@@ -80,8 +80,8 @@ class ThoughtInducer:
             "Content-Type": "application/json"
         }
 
+        # vLLM 엔드포인트는 model 필드 불필요 (이미 배포된 모델 사용)
         payload = {
-            "model": self._vertex_model,
             "messages": messages,
             "max_tokens": max_tokens,
             "temperature": temperature,

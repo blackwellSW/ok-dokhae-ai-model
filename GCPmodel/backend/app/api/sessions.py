@@ -43,6 +43,8 @@ from app.core.auth import get_current_user, get_current_active_student
 from app.services.thought_inducer import ThoughtInducer
 from app.services.integrated_evaluator import IntegratedEvaluator
 from app.services.report_generator import ReportGenerator
+from app.services.gemini_evaluator import GeminiEvaluator
+from app.repository.report_repository import report_repo
 from app.services.firestore_session import (
     init_session_messages,
     append_user_message,
@@ -420,24 +422,70 @@ async def finalize_session(
             message="이미 종료된 세션입니다."
         )
     
-    # 리포트 생성 및 종료 처리
+    # Gemini 기반 종합 리포트 생성
     report_id = f"rpt_{uuid.uuid4().hex[:12]}"
+    created_at = datetime.utcnow().isoformat()
+
+    try:
+        # 1. 대화 로그 조회
+        messages = await get_messages(session_id)
+        logs_text = "\n".join([
+            f"[{m.get('role', 'unknown')}] {m.get('content', '')}"
+            for m in messages
+        ])
+
+        # 2. Gemini로 종합 리포트 생성
+        gemini_eval = GeminiEvaluator()
+        gemini_summary = await gemini_eval.generate_session_summary(logs_text)
+
+        # 3. 리포트 데이터 구성
+        report_dict = {
+            "report_id": report_id,
+            "session_id": session_id,
+            "user_id": current_user.user_id,
+            "report_type": "session_final",
+            "summary": gemini_summary.get("종합_피드백", f"{state.current_turn}턴의 대화를 완료했습니다."),
+            "tags": [f"#{s}" for s in gemini_summary.get("주요_강점", [])[:3]],
+            "scores": [],
+            "flow_analysis": [],
+            "prescription": gemini_summary.get("향후_학습_가이드", "다음 학습을 진행해보세요."),
+            "total_score": 0,
+            "grade": gemini_summary.get("성취도_등급", "B"),
+            "created_at": created_at,
+            "raw_data": {
+                "gemini_summary": gemini_summary,
+                "total_turns": state.current_turn,
+                "strengths": gemini_summary.get("주요_강점", []),
+                "improvements": gemini_summary.get("보완_필요점", [])
+            }
+        }
+
+        # 4. Firestore에 리포트 저장
+        await report_repo.create_report(report_dict)
+
+        summary_text = gemini_summary.get("종합_피드백", f"{state.current_turn}턴의 대화를 완료했습니다.")
+
+    except Exception as e:
+        # Gemini 실패 시 기본 리포트
+        summary_text = f"{state.current_turn}턴의 대화를 완료했습니다."
+
+    # 세션 상태 업데이트
     checkpoint_data = state.checkpoint_data or {}
     checkpoint_data["report_id"] = report_id
-    
+
     update_data = {
         "status": "COMPLETED",
         "checkpoint_data": checkpoint_data
     }
-    
+
     await session_repo.update_session(session_id, update_data)
-    
+
     return FinalizeSessionResponse(
         session_id=session_id,
         status="completed",
         report_id=report_id,
-        summary=f"{state.current_turn}턴의 대화를 완료했습니다.",
-        message="세션이 종료되었습니다. 리포트를 확인하세요."
+        summary=summary_text,
+        message="세션이 종료되었습니다. Gemini 기반 리포트가 생성되었습니다."
     )
 
 

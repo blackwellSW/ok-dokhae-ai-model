@@ -94,8 +94,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_password_hash(password: str) -> str:
-    """비밀번호 해싱"""
-    return pwd_context.hash(password)
+    """비밀번호 해싱 (bcrypt 72바이트 제한 적용)"""
+    # bcrypt는 72바이트까지만 지원하므로 truncate
+    password_bytes = password.encode('utf-8')[:72]
+    return pwd_context.hash(password_bytes.decode('utf-8', errors='ignore'))
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
