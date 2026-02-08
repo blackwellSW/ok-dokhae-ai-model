@@ -1,8 +1,8 @@
 # Core Framework
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
 email-validator
 
 # Google Cloud / Firebase
@@ -18,7 +18,7 @@ requests
 httpx>=0.25.0
 
 # NLP & ML
-numpy>=1.24.0
+numpy>=1.26.0
 
 # Document Parsing
 pypdf>=3.0.0

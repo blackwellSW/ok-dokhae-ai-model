@@ -10,7 +10,7 @@ try:
     from app.api.auth import router as auth_router
     from app.api.chat_learning import router as chat_router
     from app.api.classical_literature import router as classical_literature_router
-    from app.api.learning_system import router as learning_system_router
+    # from app.api.learning_system import router as learning_system_router
     from app.api.report_generator_api import router as report_router
     from app.api.documents import router as documents_router
     from app.api.sessions import router as sessions_router
@@ -75,14 +75,35 @@ try:
         version="5.0.0"
     )
 
-    # CORS 설정 (프론트엔드 연동 대비)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # CORS 설정
+    # 주의: allow_origins=["*"]와 allow_credentials=True는 함께 사용 불가!
+    from app.core.config import settings
+
+    cors_origins = settings.get_cors_origins()
+
+    # Flutter 앱은 JWT 토큰을 Authorization 헤더로 전송하므로
+    # credentials=False로 설정해도 정상 작동
+    # 프로덕션: CORS_ORIGINS 환경변수로 특정 도메인 지정 권장
+    if cors_origins:
+        # 특정 도메인 지정된 경우
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cors_origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+            expose_headers=["*"],
+        )
+    else:
+        # 개발 환경: 모든 origin 허용 (credentials=False 필수)
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=False,
+            allow_methods=["*"],
+            allow_headers=["*"],
+            expose_headers=["*"],
+        )
 
     # 라우터 등록
     app.include_router(auth_router)  # 인증
@@ -92,7 +113,7 @@ try:
     app.include_router(teacher_router)  # 교사 허브 (NEW)
     app.include_router(chat_router)  # 채팅 학습 (레거시)
     app.include_router(classical_literature_router)  # 고전문학 AI
-    app.include_router(learning_system_router)  # 고급 학습 시스템
+    # app.include_router(learning_system_router)  # 고급 학습 시스템 (Temporarily disabled for Firestore migration)
 
     @app.get("/")
     async def root():

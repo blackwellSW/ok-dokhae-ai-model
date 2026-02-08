@@ -7,18 +7,21 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 import uuid
 
-from app.db.session import get_db
-from app.db.models import User
+# from sqlalchemy.ext.asyncio import AsyncSession  # Removed
+# from sqlalchemy import select  # Removed
+# from app.db.session import get_db  # Removed
+# from app.db.models import User  # Removed
+
+from app.schemas.user import User  # Pydantic Model
+from app.repository.user_repository import UserRepository
 from app.core.auth import (
     get_password_hash,
     verify_password,
     create_access_token,
     get_current_user,
-    verify_google_token
+    verify_id_token_universal  # Firebase + Google OAuth 통합 검증
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -76,60 +79,64 @@ class UserInfoResponse(BaseModel):
 
 @router.post("/google-login", response_model=TokenResponse)
 async def google_login(
-    request: GoogleLoginRequest,
-    db: AsyncSession = Depends(get_db)
+    request: GoogleLoginRequest
 ):
     """
-    Google 계정으로 로그인/회원가입
-    
-    1. 프론트엔드에서 Google 로그인 후 받은 id_token을 전달
-    2. 토큰 검증 및 사용자 정보 추출
-    3. DB에 없으면 자동 회원가입
-    4. JWT 액세스 토큰 발급
+    Google/Firebase 계정으로 로그인/회원가입
+
+    지원하는 토큰:
+    1. Firebase ID Token (권장) - Flutter에서 Firebase Auth로 로그인 후 받은 토큰
+    2. Google ID Token (레거시) - 직접 Google OAuth로 받은 토큰
+
+    프론트엔드는 어떤 방식이든 id_token만 전달하면 됩니다.
+    백엔드에서 자동으로 Firebase/Google 토큰을 구분하여 검증합니다.
     """
-    
-    # 1. Google Token 검증 (현재는 Client ID 미설정 시에도 테스트 가능하도록 skip 로직 고려 가능하지만 정석대로 구현)
-    # 실제 운영 시에는 config.py의 GOOGLE_CLIENT_ID가 정확해야 함
-    google_user_info = await verify_google_token(request.id_token)
-    
-    if not google_user_info:
-        # 개발 편의를 위해 토큰이 "TEST_TOKEN"인 경우 테스트 유저로 통과 (삭제 가능)
+
+    # 1. 토큰 검증 (Firebase 우선, Google fallback)
+    user_info = await verify_id_token_universal(request.id_token)
+
+    if not user_info:
+        # 개발 편의를 위해 토큰이 "TEST_TOKEN"인 경우 테스트 유저로 통과
         if request.id_token == "TEST_TOKEN":
-             google_user_info = {
-                 "email": "test@example.com", 
-                 "name": "Test User", 
-                 "sub": "test_google_id"
-             }
+            user_info = {
+                "email": "test@example.com",
+                "name": "Test User",
+                "sub": "test_google_id",
+                "provider": "test"
+            }
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="유효하지 않은 Google 토큰입니다"
+                detail="유효하지 않은 ID 토큰입니다. Firebase 또는 Google 토큰을 확인하세요."
             )
+
+    email = user_info.get("email")
+    username = user_info.get("name")
     
-    email = google_user_info.get("email")
-    username = google_user_info.get("name")
+    # 2. 사용자 조회 또는 생성 (Firestore)
+    repository = UserRepository()
+    user_data = await repository.get_by_email(email)
     
-    # 2. 사용자 조회 또는 생성
-    stmt = select(User).where(User.email == email)
-    result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
-    
-    if not user:
+    if not user_data:
         # 신규 회원가입
-        user = User(
-            user_id=str(uuid.uuid4()),
-            email=email,
-            hashed_password="",  # Google 로그인 유저는 비밀번호 없음
-            username=username,
-            user_type=request.user_type,
-            is_active=True,
-            is_verified=True, # 구글 인증이므로 verified
-            profile_data={"google_sub": google_user_info.get("sub")}
-        )
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
+        user_data = {
+            "user_id": str(uuid.uuid4()),
+            "email": email,
+            "hashed_password": "",  # OAuth 로그인 유저는 비밀번호 없음
+            "username": username,
+            "user_type": request.user_type,
+            "is_active": True,
+            "is_verified": True,  # OAuth 인증이므로 verified
+            "profile_data": {
+                "auth_provider": user_info.get("provider"),
+                "auth_sub": user_info.get("sub")
+            }
+        }
+        user_data = await repository.create_user(user_data)
     
+    # Pydantic 모델로 변환 (속성 접근을 위해)
+    user = User(**user_data)
+
     # 3. 자체 JWT 토큰 발급
     access_token = create_access_token(
         data={"sub": user.user_id, "user_type": user.user_type}
@@ -146,8 +153,7 @@ async def google_login(
 
 @router.post("/register", response_model=UserRegisterResponse)
 async def register(
-    request: UserRegisterRequest,
-    db: AsyncSession = Depends(get_db)
+    request: UserRegisterRequest
 ):
     """
     회원가입
@@ -157,10 +163,10 @@ async def register(
     - admin: 관리자
     """
     
+    repository = UserRepository()
+
     # 이메일 중복 확인
-    stmt = select(User).where(User.email == request.email)
-    result = await db.execute(stmt)
-    existing_user = result.scalar_one_or_none()
+    existing_user = await repository.get_by_email(request.email)
     
     if existing_user:
         raise HTTPException(
@@ -176,20 +182,19 @@ async def register(
         )
     
     # 사용자 생성
-    user = User(
-        user_id=str(uuid.uuid4()),
-        email=request.email,
-        hashed_password=get_password_hash(request.password),
-        username=request.username,
-        user_type=request.user_type,
-        is_active=True,
-        is_verified=False,
-        profile_data={}
-    )
+    user_data = {
+        "user_id": str(uuid.uuid4()),
+        "email": request.email,
+        "hashed_password": get_password_hash(request.password),
+        "username": request.username,
+        "user_type": request.user_type,
+        "is_active": True,
+        "is_verified": False,
+        "profile_data": {}
+    }
     
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    user_data = await repository.create_user(user_data)
+    user = User(**user_data)
     
     return UserRegisterResponse(
         user_id=user.user_id,
@@ -202,8 +207,7 @@ async def register(
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends()
 ):
     """
     로그인
@@ -212,17 +216,19 @@ async def login(
     - password: 비밀번호
     """
     
+    repository = UserRepository()
+
     # 사용자 조회 (이메일로)
-    stmt = select(User).where(User.email == form_data.username)
-    result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
+    user_data = await repository.get_by_email(form_data.username)
     
-    if not user:
+    if not user_data:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="이메일 또는 비밀번호가 올바르지 않습니다",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    user = User(**user_data)
     
     # 비밀번호 확인
     if not verify_password(form_data.password, user.hashed_password):
@@ -263,13 +269,16 @@ async def get_me(
     헤더에 Authorization: Bearer {token} 필요
     """
     
+    # Pydantic model can be accessed via attributes, but created_at is a string in the schema
+    # Logic in schema definition: 'created_at: str'
+    
     return UserInfoResponse(
         user_id=current_user.user_id,
         email=current_user.email,
         username=current_user.username,
         user_type=current_user.user_type,
         is_active=current_user.is_active,
-        created_at=current_user.created_at.isoformat()
+        created_at=current_user.created_at
     )
 
 

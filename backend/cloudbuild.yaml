@@ -22,13 +22,22 @@ steps:
       - 'managed'
       - '--allow-unauthenticated'
       - '--set-env-vars'
-      - 'GEMINI_API_KEY=${_GEMINI_API_KEY},DOCUMENT_AI_PROCESSOR_ID=${_DOCUMENT_AI_PROCESSOR_ID},DOCUMENT_AI_LOCATION=${_DOCUMENT_AI_LOCATION}'
+      - 'GEMINI_API_KEY=${_GEMINI_API_KEY},DOCUMENT_AI_PROCESSOR_ID=${_DOCUMENT_AI_PROCESSOR_ID},DOCUMENT_AI_LOCATION=${_DOCUMENT_AI_LOCATION},DATABASE_URL=sqlite+aiosqlite:////tmp/classical_literature.db,JWT_SECRET_KEY=${_JWT_SECRET_KEY},USE_VERTEX_AI=true,FIREBASE_PROJECT_ID=${PROJECT_ID}'
+      - '--min-instances'
+      - '1'
+      - '--memory'
+      - '16Gi'
+      - '--cpu'
+      - '4'
+      - '--timeout'
+      - '300'
 
 # 치환 변수 정의 (실행 시 입력 받음)
 substitutions:
   _GEMINI_API_KEY: ''
   _DOCUMENT_AI_PROCESSOR_ID: ''
   _DOCUMENT_AI_LOCATION: 'asia-northeast1'
+  _JWT_SECRET_KEY: ''
 
 options:
   logging: CLOUD_LOGGING_ONLY

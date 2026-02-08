@@ -6,10 +6,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import List, Optional, Dict
-from sqlalchemy.ext.asyncio import AsyncSession
+# Removed SQLAlchemy imports
+# from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
-from app.db.models import User
+# from app.db.session import get_db
+# from app.db.models import User
+from app.schemas.user import User
 from app.core.auth import get_current_user, get_current_active_student
 from app.services.thought_inducer import ThoughtInducer
 from app.services.integrated_evaluator import IntegratedEvaluator
@@ -60,8 +62,7 @@ class ConversationHistoryRequest(BaseModel):
 @router.post("/send", response_model=ChatResponse)
 async def send_message(
     request: ChatRequest,
-    current_user: User = Depends(get_current_active_student),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_active_student)
 ):
     """
     채팅 메시지 전송
@@ -104,8 +105,7 @@ async def send_message(
 @router.post("/evaluate", response_model=ChatResponse)
 async def evaluate_answer(
     request: EvaluateRequest,
-    current_user: User = Depends(get_current_active_student),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_active_student)
 ):
     """
     학생 답변 평가
@@ -153,8 +153,7 @@ async def evaluate_answer(
 
 @router.get("/works")
 async def get_available_works(
-    current_user: User = Depends(get_current_active_student),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_active_student)
 ):
     """
     학습 가능한 작품 목록 조회

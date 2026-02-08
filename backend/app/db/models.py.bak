@@ -68,10 +68,12 @@ class LiteraryWork(Base):
 class TextChunk(Base):
     """지문 분할 정보"""
     __tablename__ = "text_chunks"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     chunk_id: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    work_id: Mapped[str] = mapped_column(String(50), ForeignKey("literary_works.work_id"))
+    # work_id: 문서/작품 ID (LiteraryWork 또는 RAGDocument의 doc_id)
+    # 외래 키 제거: 업로드 문서(RAGDocument)와 기존 작품(LiteraryWork) 모두 참조 가능
+    work_id: Mapped[str] = mapped_column(String(50), index=True)
     
     # 분할 정보
     sequence: Mapped[int] = mapped_column(Integer)  # 순서
