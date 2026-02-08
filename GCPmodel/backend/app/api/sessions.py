@@ -344,24 +344,55 @@ async def send_message(
     if new_turn > state.max_turns:
         update_data["status"] = "COMPLETED"
         session_status = "completed"
-        
+
         # 통합 평가
         evaluator = IntegratedEvaluator()
         eval_result = await evaluator.evaluate_comprehensive(request.content)
-        
+
         # 리포트 생성
         report_id = f"rpt_{uuid.uuid4().hex[:12]}"
         checkpoint_data = state.checkpoint_data or {}
         checkpoint_data["report_id"] = report_id
         update_data["checkpoint_data"] = checkpoint_data
-        
+
+        # 리포트 데이터 생성 및 저장
+        generator = ReportGenerator()
+        report_data = generator.generate(
+            qualitative_eval=eval_result.get("질적_평가", {}),
+            quantitative_eval=eval_result.get("정량_분석", {}),
+            integrated_eval=eval_result.get("통합_평가", {}),
+            thought_log=[]
+        )
+
+        # Firestore에 리포트 저장
+        report_dict = {
+            "report_id": report_id,
+            "session_id": session_id,
+            "user_id": current_user.user_id,
+            "report_type": "student",
+            "summary": report_data.get("summary", ""),
+            "tags": report_data.get("tags", []),
+            "scores": report_data.get("scores", []),
+            "flow_analysis": report_data.get("flow_analysis", []),
+            "prescription": report_data.get("prescription", ""),
+            "total_score": eval_result.get("통합_평가", {}).get("총점", 0),
+            "grade": eval_result.get("통합_평가", {}).get("등급", "C+"),
+            "created_at": datetime.utcnow().isoformat(),
+            "raw_data": {
+                "qualitative": eval_result.get("질적_평가", {}),
+                "quantitative": eval_result.get("정량_분석", {}),
+                "integrated": eval_result.get("통합_평가", {})
+            }
+        }
+        await report_repo.create_report(report_dict)
+
         evaluation = {
             "report_id": report_id,
             "score": eval_result.get("통합_평가", {}).get("총점", 0),
             "grade": eval_result.get("통합_평가", {}).get("등급", "C+"),
             "feedback": eval_result.get("개인_피드백", [])
         }
-        
+
         assistant_message = f"수고하셨습니다! 📊 총점: {evaluation['score']}점 (등급: {evaluation['grade']})"
         message_type = "feedback"
     else:
