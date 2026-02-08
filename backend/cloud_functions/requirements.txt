@@ -1,0 +1,3 @@
+# Cloud Functions 의존성
+functions-framework==3.*
+google-cloud-firestore>=2.0.0
