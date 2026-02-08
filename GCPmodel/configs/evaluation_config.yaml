@@ -1,0 +1,97 @@
+# Evaluation Configuration
+# ========================
+
+# Gemini API Settings
+gemini:
+  model: "gemini-pro"
+  api_key: "${GEMINI_API_KEY}"  # 환경변수 우선 사용
+  temperature: 0.3
+  max_tokens: 1024
+
+# Evaluation Weights
+weights:
+  qualitative: 0.7  # 질적 평가 70%
+  quantitative: 0.3  # 정량 평가 30%
+
+# Qualitative Rubric Dimensions
+qualitative_dimensions:
+  - name: "추론_깊이"
+    weight: 0.35
+    max_score: 5
+  - name: "비판적_사고"
+    weight: 0.35
+    max_score: 5
+  - name: "문학적_이해"
+    weight: 0.30
+    max_score: 5
+
+# Quantitative Metrics
+quantitative_metrics:
+  vocabulary_diversity:
+    weight: 0.25
+    thresholds:
+      excellent: 0.75
+      good: 0.6
+      average: 0.4
+
+  concept_usage:
+    weight: 0.25
+    min_excellent: 5
+    min_good: 3
+    categories_excellent: 3
+    categories_good: 2
+
+  sentence_complexity:
+    weight: 0.20
+    thresholds:
+      complex: 10
+      appropriate: 6
+
+  repetition:
+    weight: 0.10
+    warning_threshold: 0.2
+
+  sentiment:
+    weight: 0.10
+
+  harmful_content:
+    weight: 0.10
+
+# Grade Thresholds
+grades:
+  "A+": 90
+  "A": 85
+  "B+": 80
+  "B": 75
+  "C+": 70
+  "C": 65
+  "D": 0
+
+# Harmful Expression Model (AI HUB)
+harmful_detection:
+  model_path: "/Users/choidamul/Downloads/유해표현 검출 AI모델 학습용 데이터"  # 필요시 세부 경로로 변경
+  warning_levels:
+    safe: 0
+    caution: 2
+    warning: 3
+
+# Language Analysis Settings
+language_analysis:
+  # Sentence-BERT 모델 (한국어)
+  embedding_model: "jhgan/ko-sroberta-multitask"
+
+  # 감정 분석 모델
+  sentiment_model: "beomi/KcELECTRA-base-v2022"
+
+  # 형태소 분석기
+  morpheme_analyzer: "okt"
+
+  # 의미 유사도 임계값
+  similarity_threshold: 0.6
+
+# Output Settings
+output:
+  thought_logs_dir: "outputs/thought_logs"
+  evaluations_dir: "outputs/evaluations"
+  reports_dir: "outputs/reports"
+  save_detailed_logs: true

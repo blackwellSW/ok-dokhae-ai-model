@@ -1,0 +1,16 @@
+﻿{
+    "status":  "error",
+    "message":  "Application failed to start.",
+    "error_detail":  [
+                         "Traceback (most recent call last):",
+                         "  File \"/app/app/main.py\", line 13, in \u003cmodule\u003e",
+                         "    from app.api.learning_system import router as learning_system_router",
+                         "  File \"/app/app/api/learning_system.py\", line 17, in \u003cmodule\u003e",
+                         "    from app.services.anomaly_detector import AnomalyDetector",
+                         "  File \"/app/app/services/anomaly_detector.py\", line 14, in \u003cmodule\u003e",
+                         "    class AnomalyDetector:",
+                         "  File \"/app/app/services/anomaly_detector.py\", line 26, in AnomalyDetector",
+                         "    ) -\u003e List[Dict]:",
+                         "NameError: name \u0027Dict\u0027 is not defined. Did you mean: \u0027dict\u0027?"
+                     ]
+}

@@ -1,0 +1,58 @@
+# Training Configuration for Gemma 3 Fine-tuning
+# ==============================================
+
+# Model Settings
+model:
+  name: "google/gemma-3-9b-it"
+  load_in_4bit: true
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+
+# LoRA Configuration
+lora:
+  r: 16
+  lora_alpha: 32
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+  lora_dropout: 0.05
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+# Training Arguments
+training:
+  output_dir: "models/gemma_finetuned"
+  num_train_epochs: 3
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  learning_rate: 2e-4
+  fp16: true
+  logging_steps: 10
+  save_steps: 100
+  warmup_steps: 100
+  optim: "paged_adamw_8bit"
+  max_length: 1024
+
+# Data Paths (TODO: Fill in your data paths)
+data:
+  # AI HUB 고전문학 데이터 경로
+  raw_classics_path: "/Users/choidamul/Downloads/Gmail/itkc_korean_classics_train.jsonl"
+  raw_comprehension_path: "/Users/choidamul/Downloads/29.국어 교과 지문형 문제 데이터"
+  raw_evaluation_path:
+    - "/Users/choidamul/Downloads/26.논술형 글쓰기 평가 데이터"
+    - "/Users/choidamul/Downloads/25.서술형 글쓰기 평가 데이터"
+
+  # 전처리된 학습 데이터 경로
+  train_data_path: "data/processed/train_raw.jsonl"
+  valid_data_path: "data/processed/valid_raw.jsonl"
+
+  # 템플릿 경로
+  socratic_templates_path: "data/templates/socratic_patterns.json"
+
+# GCP Settings
+gcp:
+  project_id: ""  # TODO: GCP 프로젝트 ID
+  region: "us-central1"
+  bucket_name: ""  # TODO: Cloud Storage 버킷 이름

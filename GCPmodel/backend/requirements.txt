@@ -1,0 +1,39 @@
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+email-validator
+
+# Google Cloud / Firebase
+google-generativeai>=0.3.0
+google-cloud-aiplatform>=1.38.0
+google-cloud-documentai>=2.20.0
+google-cloud-firestore
+google-cloud-logging>=3.0.0
+firebase-admin>=6.0.0
+google-auth>=2.0.0
+google-auth-oauthlib
+requests
+httpx>=0.25.0
+
+# NLP & ML
+numpy>=1.24.0
+
+# Document Parsing
+pypdf>=3.0.0
+python-docx>=0.8.11
+
+# Database
+sqlalchemy>=2.0.0
+asyncpg
+aiosqlite
+
+# Utilities
+python-dotenv
+sentencepiece
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart

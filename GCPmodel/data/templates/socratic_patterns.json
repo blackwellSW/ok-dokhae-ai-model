@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "description": "소크라틱 대화 변환 템플릿",
+
+  "instruction_template": "학생의 사고를 유도하며 고전문학을 가르치세요. [사고유도]와 [사고로그] 태그를 사용하세요.",
+
+  "thought_induction_patterns": [
+    {
+      "type": "context_exploration",
+      "description": "맥락 탐색 유도",
+      "template": "좋은 질문이네요! 먼저 {context}를 생각해볼까요? {leading_question}"
+    },
+    {
+      "type": "perspective_shift",
+      "description": "관점 전환 유도",
+      "template": "만약 {hypothetical_situation}라면, {consequence_question}"
+    },
+    {
+      "type": "deeper_analysis",
+      "description": "심층 분석 유도",
+      "template": "{surface_observation}인데, 왜 그럴까요? {underlying_reason_question}"
+    },
+    {
+      "type": "comparison",
+      "description": "비교 분석 유도",
+      "template": "{element_a}와 {element_b}를 비교해보면, {comparison_question}"
+    },
+    {
+      "type": "connection",
+      "description": "연결 사고 유도",
+      "template": "이것이 {related_concept}과 어떻게 연결될까요? {connection_question}"
+    }
+  ],
+
+  "thought_log_components": {
+    "thinking_stage": [
+      "학생이 {topic}에 대해 사고 시작",
+      "학생이 {concept_a}와 {concept_b}를 연결지어 사고",
+      "학생이 {approach} 방식으로 문제에 접근"
+    ],
+    "reasoning_depth": [
+      "추론 깊이: 상 (다층적 분석 시도)",
+      "추론 깊이: 중상 (논리적 연결 시도)",
+      "추론 깊이: 중 (기본적 추론)",
+      "추론 깊이: 중하 (표면적 이해)",
+      "추론 깊이: 하 (단편적 반응)"
+    ],
+    "context_understanding": [
+      "맥락 이해: 우수 (시대적/문화적 배경 통합)",
+      "맥락 이해: 양호 (주요 맥락 파악)",
+      "맥락 이해: 보통 (기본 맥락 인지)",
+      "맥락 이해: 미흡 (맥락 연결 부족)"
+    ]
+  },
+
+  "example_conversions": [
+    {
+      "source": "춘향전",
+      "original_question": "이몽룡이 신분을 숨긴 이유가 뭔가요?",
+      "socratic_output": {
+        "thought_induction": "좋은 질문이네요! 먼저 조선시대 신분제를 생각해볼까요? 만약 이몽룡이 처음부터 '저는 양반 도련님입니다'라고 밝혔다면, 춘향과의 관계가 어떻게 달라졌을까요? 춘향의 반응은 어땠을까요?",
+        "thought_log": "학생이 신분제와 사랑의 진정성을 연결지어 사고 시작. 조선시대 사회 구조에 대한 이해를 바탕으로 인물 행동의 동기를 추론하려는 시도가 보임. 추론 깊이: 중상. 맥락 이해: 양호."
+      }
+    },
+    {
+      "source": "홍길동전",
+      "original_question": "홍길동이 활빈당을 만든 이유는 무엇인가요?",
+      "socratic_output": {
+        "thought_induction": "흥미로운 질문이에요! 홍길동의 개인적인 경험을 먼저 떠올려볼까요? 서자로서 겪은 차별이 그에게 어떤 영향을 미쳤을까요? 그리고 그 경험이 '활빈당'이라는 이름에 어떻게 반영되어 있을까요?",
+        "thought_log": "학생이 개인의 경험과 사회적 행동의 연결을 탐구하려 함. 신분 차별의 경험이 사회 정의 실현 의지로 전환되는 과정을 추론 중. 추론 깊이: 중상. 맥락 이해: 양호."
+      }
+    }
+  ],
+
+  "conversion_prompt_template": "다음 고전문학 질문을 소크라틱 대화 형식으로 변환하세요.\n\n[원본 지문]\n{passage}\n\n[학생 질문]\n{question}\n\n[모범 답안]\n{answer}\n\n[변환 요구사항]\n1. [사고유도] 태그: 학생의 사고를 유도하는 단계적 질문 (2-3개)\n2. [사고로그] 태그: 학생이 거칠 사고 과정 예측 및 기록\n3. 직접 답을 주지 말고, 스스로 생각하도록 유도\n\n[출력 형식]\n[사고유도] (단계적 질문)\n[사고로그] (예상 사고 과정, 추론 깊이/맥락 이해도 포함)"
+}
