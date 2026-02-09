@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # AI 모델 설정
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 
-    # Vertex AI 설정 (Fine-tuned Gemma 3 Model)
+    # Vertex AI 설정 (Fine-tuned Gemma 3 Model via vLLM)
     VERTEX_AI_ENDPOINT: str = os.getenv(
         "VERTEX_AI_ENDPOINT",
         "https://us-central1-aiplatform.googleapis.com/v1/projects/knu-team-03/locations/us-central1/endpoints/2283851677146546176:rawPredict"

@@ -17,7 +17,7 @@ steps:
       - '--image'
       - 'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/last-ok-dokhae/backend:${BUILD_ID}'
       - '--region'
-      - 'asia-northeast1'
+      - 'us-central1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
