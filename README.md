@@ -3,9 +3,9 @@
 # OK독해 AI 학습 시스템
 
 <p>
-  <img src="https://img.shields.io/badge/Award-2026%20Google%20Cloud%20AI%20Competition%20Grand%20Prize-gold?style=for-the-badge" alt="Award Badge" />
-  <img src="https://img.shields.io/badge/Stack-FastAPI%20%7C%20Flutter%20%7C%20Vertex%20AI-0EA5E9?style=for-the-badge" alt="Stack Badge" />
-  <img src="https://img.shields.io/badge/Model-Gemma%20%2B%20LoRA-111827?style=for-the-badge" alt="Model Badge" />
+  <img src="https://img.shields.io/badge/Award-2026%20Google%20Cloud%20AI%20Competition%20Grand%20Prize-3FA34D?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Award Badge" />
+  <img src="https://img.shields.io/badge/Stack-FastAPI%20%7C%20Flutter%20%7C%20Vertex%20AI-2F855A?style=for-the-badge" alt="Stack Badge" />
+  <img src="https://img.shields.io/badge/Model-Gemma%20%2B%20LoRA-14532D?style=for-the-badge" alt="Model Badge" />
 </p>
 
 <p>
@@ -13,7 +13,14 @@
   <sub>수상일: 2026/02/13</sub>
 </p>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f172a,100:2563eb&height=220&section=header&text=Thinking%20Beyond%20Answers&fontSize=44&fontColor=ffffff&animation=fadeIn&fontAlignY=35" width="100%" alt="banner" />
+<p>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:14532d,50:16a34a,100:86efac&height=220&section=header&text=Thinking%20Beyond%20Answers&fontSize=44&fontColor=ffffff&animation=fadeIn&fontAlignY=35" width="100%" alt="banner" />
+</p>
+
+<p>
+  <strong>Socratic AI Tutor for Classical Literature</strong><br/>
+  <sub>Green-themed portfolio highlight for the OK독해 project</sub>
+</p>
 
 </div>
 
@@ -29,6 +36,10 @@
 - `Google Cloud` 기반 학습 및 배포 파이프라인
 - `Flutter` 앱 + `FastAPI` 백엔드 + `Vertex AI` 서빙 연동
 
+## 언론 보도
+
+- Pressian: https://www.pressian.com/pages/articles/2026022317460997947
+
 ## 수상 실적
 
 <table>
@@ -39,7 +50,7 @@
       <div><strong>2026/02/13</strong></div>
     </td>
     <td align="center" width="50%">
-      <div style="font-size:18px; font-weight:700;">🧠 프로젝트 방향</div>
+      <div style="font-size:18px; font-weight:700;">🌿 프로젝트 방향</div>
       <div>정답 중심이 아니라 사고 과정 중심</div>
       <div>문학 해석, 근거 연결, 재서술 강화</div>
     </td>
@@ -122,14 +133,14 @@ Gemini + NLP 평가
 ## 기술 스택
 
 <p>
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Google Cloud" />
-  <img src="https://img.shields.io/badge/Vertex_AI-7E57C2?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Vertex AI" />
-  <img src="https://img.shields.io/badge/Gemini-8E24AA?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
-  <img src="https://img.shields.io/badge/Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=111827" alt="Firestore" />
-  <img src="https://img.shields.io/badge/Document_AI-111827?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Document AI" />
+  <img src="https://img.shields.io/badge/FastAPI-0F766E?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Flutter-0F9D58?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/Python-2E7D32?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Google_Cloud-34A853?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Google Cloud" />
+  <img src="https://img.shields.io/badge/Vertex_AI-16A34A?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Vertex AI" />
+  <img src="https://img.shields.io/badge/Gemini-15803D?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
+  <img src="https://img.shields.io/badge/Firestore-65A30D?style=for-the-badge&logo=firebase&logoColor=white" alt="Firestore" />
+  <img src="https://img.shields.io/badge/Document_AI-166534?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Document AI" />
 </p>
 
 ## 저장소 구성
