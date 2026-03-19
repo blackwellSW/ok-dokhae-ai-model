@@ -1,29 +1,91 @@
+<div align="center">
+
 # OK독해 AI 학습 시스템
 
-> 고전문학 사고유도 대화 AI + 자동 평가 + Google Cloud 배포까지 연결한 통합 프로젝트
+<p>
+  <img src="https://img.shields.io/badge/Award-2026%20Google%20Cloud%20AI%20Competition%20Grand%20Prize-gold?style=for-the-badge" alt="Award Badge" />
+  <img src="https://img.shields.io/badge/Stack-FastAPI%20%7C%20Flutter%20%7C%20Vertex%20AI-0EA5E9?style=for-the-badge" alt="Stack Badge" />
+  <img src="https://img.shields.io/badge/Model-Gemma%20%2B%20LoRA-111827?style=for-the-badge" alt="Model Badge" />
+</p>
 
-## 수상 이력
+<p>
+  <strong>2026 전국 Google Cloud 기반 AI 융합 경진대회 최우수상</strong><br/>
+  <sub>수상일: 2026/02/13</sub>
+</p>
 
-- `2026 전국 Google Cloud 기반 AI 융합 경진대회 최우수상`
-- 수상일: `2026/02/13`
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f172a,100:2563eb&height=220&section=header&text=Thinking%20Beyond%20Answers&fontSize=44&fontColor=ffffff&animation=fadeIn&fontAlignY=35" width="100%" alt="banner" />
 
-## 프로젝트 소개
+</div>
 
-**OK독해**는 고전문학 학습에서 정답을 바로 주는 방식이 아니라, 학생이 스스로 근거를 찾고 사고를 확장하도록 유도하는 AI 학습 시스템입니다.
+## 프로젝트 한 줄 소개
 
-이 프로젝트는 다음 흐름을 중심으로 구성되어 있습니다.
+고전문학 학습에서 정답을 바로 주는 대신, 학생이 스스로 근거를 찾고 사고를 확장하도록 유도하는 AI 학습 시스템입니다.
+
+## 하이라이트
 
 - `소크라틱 질문` 기반 대화형 튜터
-- `4턴 핑퐁` 학습 흐름
-- `질적 평가 + 정량 평가`를 결합한 자동 리포트
-- `Google Cloud` 기반 학습/배포 파이프라인
-- `Flutter` 앱, `FastAPI` 백엔드, `Vertex AI` 모델 서빙 연동
+- `4턴 핑퐁` 구조의 학습 흐름
+- `질적 평가 + 정량 평가` 결합 리포트
+- `Google Cloud` 기반 학습 및 배포 파이프라인
+- `Flutter` 앱 + `FastAPI` 백엔드 + `Vertex AI` 서빙 연동
+
+## 수상 실적
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <div style="font-size:18px; font-weight:700;">🏆 최우수상</div>
+      <div>2026 전국 Google Cloud 기반 AI 융합 경진대회</div>
+      <div><strong>2026/02/13</strong></div>
+    </td>
+    <td align="center" width="50%">
+      <div style="font-size:18px; font-weight:700;">🧠 프로젝트 방향</div>
+      <div>정답 중심이 아니라 사고 과정 중심</div>
+      <div>문학 해석, 근거 연결, 재서술 강화</div>
+    </td>
+  </tr>
+</table>
+
+## 팀
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/blackwellSW">
+        <img src="https://github.com/blackwellSW.png?size=120" width="96" height="96" style="border-radius:50%;" alt="blackwellSW" />
+      </a>
+      <br/>
+      <strong>blackwellSW</strong>
+    </td>
+    <td align="center">
+      <a href="https://github.com/healthy27">
+        <img src="https://github.com/healthy27.png?size=120" width="96" height="96" style="border-radius:50%;" alt="healthy27" />
+      </a>
+      <br/>
+      <strong>healthy27</strong>
+    </td>
+    <td align="center">
+      <a href="https://github.com/amblergonz">
+        <img src="https://github.com/amblergonz.png?size=120" width="96" height="96" style="border-radius:50%;" alt="amblergonz" />
+      </a>
+      <br/>
+      <strong>amblergonz</strong>
+    </td>
+    <td align="center">
+      <a href="https://github.com/AbRntM">
+        <img src="https://github.com/AbRntM.png?size=120" width="96" height="96" style="border-radius:50%;" alt="AbRntM" />
+      </a>
+      <br/>
+      <strong>AbRntM</strong>
+    </td>
+  </tr>
+</table>
 
 ## 핵심 기능
 
 ### 1. 사고유도 대화형 학습
 - 학생의 답을 바로 정답 처리하지 않고, 다음 사고를 이끌 질문을 제공합니다.
-- 작품 이해, 표현 해석, 근거 연결, 재서술을 반복하며 학습을 진행합니다.
+- 작품 이해, 표현 해석, 근거 연결, 재서술을 반복하며 학습합니다.
 
 ### 2. 자동 평가 시스템
 - Gemini 기반 질적 평가
@@ -41,16 +103,34 @@
 - 교육 스타일 기반 페르소나
 - 학생이 원하는 튜터 톤을 선택할 수 있는 구조
 
+## 아키텍처
+
+```text
+학생 입력
+   ↓
+Flutter 앱
+   ↓
+FastAPI 백엔드
+   ↓
+Vertex AI / vLLM 모델 서빙
+   ↓
+Gemini + NLP 평가
+   ↓
+리포트 저장 및 재조회
+```
+
 ## 기술 스택
 
-- `Backend`: FastAPI, Python
-- `Frontend`: Flutter
-- `Model`: Gemma 계열 모델, LoRA/QLoRA
-- `Inference`: Vertex AI, vLLM
-- `Evaluation`: Gemini, NLP 기반 분석
-- `Auth`: JWT, Google OAuth
-- `Storage`: Firestore, Cloud Storage, Document AI
-- `Deployment`: Google Cloud, Cloud Build, Cloud Run/Vertex AI 계열 배포 스크립트
+<p>
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Google Cloud" />
+  <img src="https://img.shields.io/badge/Vertex_AI-7E57C2?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Vertex AI" />
+  <img src="https://img.shields.io/badge/Gemini-8E24AA?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
+  <img src="https://img.shields.io/badge/Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=111827" alt="Firestore" />
+  <img src="https://img.shields.io/badge/Document_AI-111827?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Document AI" />
+</p>
 
 ## 저장소 구성
 
@@ -58,21 +138,13 @@
 .
 ├── backend/                 # FastAPI 서버, API, 서비스, 스키마
 ├── frontend/                # Flutter 앱
-├── deployment/              # vLLM / Vertex AI / Docker 배포 관련 파일
+├── deployment/              # vLLM / Vertex AI / Docker 배포 파일
 ├── scripts/                 # 학습, 평가, 배포, 시각화 스크립트
 ├── docs/                    # 발표 자료, 기술 정리, 평가 문서
 ├── model_artifacts/         # 학습된 어댑터 및 모델 산출물
 ├── app/                     # 데모 및 테스트용 앱
 └── requirements.txt         # 공통 의존성
 ```
-
-## 아키텍처 요약
-
-1. 학생이 Flutter 앱에서 문서를 선택하거나 업로드합니다.
-2. FastAPI 백엔드가 세션과 학습 상태를 관리합니다.
-3. 모델은 사고유도 질문과 피드백을 생성합니다.
-4. Gemini/NLP 평가기가 응답 품질을 점검합니다.
-5. 결과는 리포트로 저장되어 교사/학생 화면에 재사용됩니다.
 
 ## 실행 방법
 
@@ -90,11 +162,6 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
-API 문서는 실행 후 아래에서 확인할 수 있습니다.
-
-- `http://localhost:8000/docs`
-- `http://localhost:8000/redoc`
-
 ### 3. Flutter 프론트엔드 실행
 
 ```bash
@@ -103,14 +170,7 @@ flutter pub get
 flutter run
 ```
 
-### 4. 배포/모델 관련 스크립트
-
-- `scripts/` 아래에 학습, 검증, 배포, 시각화용 스크립트가 정리되어 있습니다.
-- `deployment/` 아래에 vLLM 및 Google Cloud 배포용 파일이 있습니다.
-
 ## 환경 변수 예시
-
-프로젝트 실행 시 아래 값들이 필요할 수 있습니다.
 
 ```bash
 GEMINI_API_KEY=your-api-key
