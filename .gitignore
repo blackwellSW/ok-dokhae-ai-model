@@ -39,6 +39,34 @@ Thumbs.db
 # Local
 tmp/
 *.log
+/Desktop/
+/Downloads/
+/Documents/
+/Library/
+/Movies/
+/Music/
+/Pictures/
+/Public/
+/Applications/
+/Sites/
+/IdeaProjects/
+/CLionProjects/
+/PyCharmMiscProject/
+/main_122/
+/projects/
+/vibe_code/
+/ok_dokhae_test1/
+/RealFinal/
+/llm_wrokspace/
+/.ssh/
+/.git-credentials
+/.aws/
+/.config/
+/.claude/
+/.codex/
+/.gemini/
+/.jupyter/
+/.streamlit/
 
 # Credentials
 *.key
