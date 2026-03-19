@@ -62,18 +62,22 @@
 <table>
   <tr>
     <td align="center">
-      <a href="https://github.com/blackwellSW">
-        <img src="https://github.com/blackwellSW.png?size=120" width="96" height="96" style="border-radius:50%;" alt="blackwellSW" />
-      </a>
-      <br/>
-      <strong>blackwellSW</strong>
-    </td>
-    <td align="center">
       <a href="https://github.com/healthy27">
         <img src="https://github.com/healthy27.png?size=120" width="96" height="96" style="border-radius:50%;" alt="healthy27" />
       </a>
       <br/>
       <strong>healthy27</strong>
+      <br/>
+      <sub>팀장, AI/데이터 담당</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/blackwellSW">
+        <img src="https://github.com/blackwellSW.png?size=120" width="96" height="96" style="border-radius:50%;" alt="blackwellSW" />
+      </a>
+      <br/>
+      <strong>blackwellSW</strong>
+      <br/>
+      <sub>프론트엔드/기획</sub>
     </td>
     <td align="center">
       <a href="https://github.com/amblergonz">
@@ -81,13 +85,17 @@
       </a>
       <br/>
       <strong>amblergonz</strong>
+      <br/>
+      <sub>백엔드/기획</sub>
     </td>
     <td align="center">
-      <a href="https://github.com/AbRntM">
-        <img src="https://github.com/AbRntM.png?size=120" width="96" height="96" style="border-radius:50%;" alt="AbRntM" />
+      <a href="https://github.com/123k444">
+        <img src="https://github.com/123k444.png?size=120" width="96" height="96" style="border-radius:50%;" alt="123k444" />
       </a>
       <br/>
-      <strong>AbRntM</strong>
+      <strong>123k444</strong>
+      <br/>
+      <sub>백엔드/디자인</sub>
     </td>
   </tr>
 </table>
